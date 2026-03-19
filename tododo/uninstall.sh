@@ -1,42 +1,21 @@
 #!/usr/bin/env bash
-# Remove tododo symlinks from ~/.claude/.
+# Uninstall tododo: remove symlinks from ~/.claude/
 set -euo pipefail
 
+PLUGIN="tododo"
 COMMANDS_DIR="${HOME}/.claude/commands"
 SKILLS_DIR="${HOME}/.claude/skills"
+SCRIPTS_DIR="${HOME}/.claude/scripts/tododo"
 
-echo "Uninstalling tododo..."
+echo "Uninstalling ${PLUGIN}..."
 
-if [ -L "${COMMANDS_DIR}/tododo.md" ]; then
-    rm "${COMMANDS_DIR}/tododo.md"
-    echo "  removed command"
-fi
+[ -L "${COMMANDS_DIR}/tododo.md" ]           && rm "${COMMANDS_DIR}/tododo.md"           && echo "  removed command"
+[ -L "${COMMANDS_DIR}/tododo:interface.md" ] && rm "${COMMANDS_DIR}/tododo:interface.md" && echo "  removed interface command"
+[ -L "${SKILLS_DIR}/tododo" ]                && rm "${SKILLS_DIR}/tododo"                && echo "  removed skill"
+[ -L "${SCRIPTS_DIR}/scan_todos.py" ]        && rm "${SCRIPTS_DIR}/scan_todos.py"        && echo "  removed scanner"
+[ -L "${SCRIPTS_DIR}/tododo_web.py" ]        && rm "${SCRIPTS_DIR}/tododo_web.py"        && echo "  removed web server"
+[ -f "${HOME}/.claude/tododo_root" ]         && rm "${HOME}/.claude/tododo_root"         && echo "  removed root config"
 
-if [ -L "${COMMANDS_DIR}/tododo:interface.md" ]; then
-    rm "${COMMANDS_DIR}/tododo:interface.md"
-    echo "  removed interface command"
-fi
-
-if [ -L "${SKILLS_DIR}/tododo" ]; then
-    rm "${SKILLS_DIR}/tododo"
-    echo "  removed skill"
-fi
-
-if [ -f "${HOME}/.claude/tododo_root" ]; then
-    rm "${HOME}/.claude/tododo_root"
-    echo "  removed root config"
-fi
-
-if [ -L "${HOME}/.claude/scripts/tododo/scan_todos.py" ]; then
-    rm "${HOME}/.claude/scripts/tododo/scan_todos.py"
-    echo "  removed scanner"
-fi
-
-if [ -L "${HOME}/.claude/scripts/tododo/tododo_web.py" ]; then
-    rm "${HOME}/.claude/scripts/tododo/tododo_web.py"
-    echo "  removed web server"
-fi
-
-rmdir --ignore-fail-on-non-empty "${HOME}/.claude/scripts/tododo" 2>/dev/null || true
+rmdir --ignore-fail-on-non-empty "${SCRIPTS_DIR}" 2>/dev/null || true
 
 echo "Done."

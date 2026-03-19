@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
-# Remove git-commands symlinks from ~/.claude/.
+# Uninstall git-commands: remove symlinks from ~/.claude/commands/
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN="git-commands"
 COMMANDS_DIR="${HOME}/.claude/commands"
 
-echo "Uninstalling git-commands..."
+echo "Uninstalling ${PLUGIN}..."
 
-for cmd in "${SCRIPT_DIR}"/commands/*.md; do
-    name="$(basename "$cmd")"
-    if [ -L "${COMMANDS_DIR}/${name}" ]; then
-        rm "${COMMANDS_DIR}/${name}"
-        echo "  removed ${name}"
-    fi
+for name in commit.md generate-pr.md mr.md; do
+    [ -L "${COMMANDS_DIR}/${name}" ] && rm "${COMMANDS_DIR}/${name}" && echo "  removed ${name}"
 done
 
 echo "Done."

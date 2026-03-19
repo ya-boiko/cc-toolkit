@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# Install tododo globally for the current user.
-# Symlinks the command and skill into ~/.claude/ so /tododo and the skill
-# are available in every Claude Code session.
+# Install tododo: symlink commands, skill, and scripts into ~/.claude/
 set -euo pipefail
 
+PLUGIN="tododo"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMMANDS_DIR="${HOME}/.claude/commands"
 SKILLS_DIR="${HOME}/.claude/skills"
+SCRIPTS_DIR="${HOME}/.claude/scripts/tododo"
 
-echo "Installing tododo..."
-
-mkdir -p "$COMMANDS_DIR" "$SKILLS_DIR"
+echo "Installing ${PLUGIN}..."
+mkdir -p "${COMMANDS_DIR}" "${SKILLS_DIR}" "${SCRIPTS_DIR}"
 
 rm -f "${COMMANDS_DIR}/tododo.md"
 ln -s "${SCRIPT_DIR}/commands/tododo.md" "${COMMANDS_DIR}/tododo.md"
@@ -27,16 +26,13 @@ echo "  skill   → ${SKILLS_DIR}/tododo"
 echo "${SCRIPT_DIR}" > "${HOME}/.claude/tododo_root"
 echo "  root    → ${HOME}/.claude/tododo_root"
 
-mkdir -p "${HOME}/.claude/scripts/tododo"
-rm -f "${HOME}/.claude/scripts/tododo/scan_todos.py"
-ln -s "${SCRIPT_DIR}/scripts/scan_todos.py" "${HOME}/.claude/scripts/tododo/scan_todos.py"
-echo "  scanner → ${HOME}/.claude/scripts/tododo/scan_todos.py"
+rm -f "${SCRIPTS_DIR}/scan_todos.py"
+ln -s "${SCRIPT_DIR}/scripts/scan_todos.py" "${SCRIPTS_DIR}/scan_todos.py"
+echo "  script  → ${SCRIPTS_DIR}/scan_todos.py"
 
-rm -f "${HOME}/.claude/scripts/tododo/tododo_web.py"
-ln -s "${SCRIPT_DIR}/scripts/tododo_web.py" "${HOME}/.claude/scripts/tododo/tododo_web.py"
-echo "  web     → ${HOME}/.claude/scripts/tododo/tododo_web.py"
+rm -f "${SCRIPTS_DIR}/tododo_web.py"
+ln -s "${SCRIPT_DIR}/scripts/tododo_web.py" "${SCRIPTS_DIR}/tododo_web.py"
+echo "  script  → ${SCRIPTS_DIR}/tododo_web.py"
 
 echo ""
 echo "Done. /tododo is now available in all Claude Code sessions."
-echo "To update: cd '${SCRIPT_DIR}' && git pull"
-echo "To uninstall: ${SCRIPT_DIR}/uninstall.sh"
