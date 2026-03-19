@@ -5,7 +5,22 @@ import os
 import subprocess
 import sys
 
-CLI_PATH = "/home/ya_boiko/Hubstaff/HubstaffCLI.bin.x86_64"
+_DEFAULT_CLI_PATH = os.path.expanduser("~/Hubstaff/HubstaffCLI.bin.x86_64")
+_CONFIG_FILE = os.path.expanduser("~/.claude/scripts/hubstaff/config")
+
+
+def _load_cli_path() -> str:
+    """Resolve CLI path: config file → HUBSTAFF_CLI env var → default."""
+    if os.path.isfile(_CONFIG_FILE):
+        with open(_CONFIG_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("HUBSTAFF_CLI="):
+                    return line.split("=", 1)[1].strip()
+    return os.environ.get("HUBSTAFF_CLI", _DEFAULT_CLI_PATH)
+
+
+CLI_PATH = _load_cli_path()
 
 
 def run_cli(*args):
