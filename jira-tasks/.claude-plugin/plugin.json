@@ -1,0 +1,6 @@
+{
+  "name": "jira-tasks",
+  "version": "0.1.0",
+  "description": "Generate structured Jira task text through interactive dialogue",
+  "author": { "name": "Vlad Boiko" }
+}

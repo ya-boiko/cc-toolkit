@@ -1,0 +1,3 @@
+[submodule "plannotator"]
+	path = plannotator
+	url = https://github.com/backnotprop/plannotator.git

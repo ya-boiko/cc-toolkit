@@ -1,0 +1,6 @@
+{
+  "name": "hubstaff",
+  "version": "0.1.0",
+  "description": "Manage Hubstaff time tracking from Claude Code",
+  "author": { "name": "Vlad Boiko" }
+}

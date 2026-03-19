@@ -1,0 +1,25 @@
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Subproject node_modules / build artifacts
+node_modules/
+dist/
+build/
+*.lock
+
+# Submodules are tracked via .gitmodules
+
+# Claude code
+docs/
+CLAUDE.md
+.claude
