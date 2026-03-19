@@ -1,177 +1,196 @@
 # Claude Code Skills & Commands
 
-Набор плагинов для Claude Code — команды и скиллы для повседневной работы.
+A collection of Claude Code plugins — commands and skills for everyday development workflow.
 
-## Плагины
+## Plugins
 
-- [jira-tasks](#jira-tasks) — генерация Jira-задач
-- [hubstaff](#hubstaff) — управление тайм-трекером
-- [git-commands](#git-commands) — git-воркфлоу
-- [tododo](#tododo) — управление TODO-комментариями
+| Plugin | Description | Docs |
+|---|---|---|
+| [jira-tasks](#jira-tasks) | Generate Jira task text | [README](jira-tasks/README.md) |
+| [hubstaff](#hubstaff) | Manage Hubstaff time tracking | [README](hubstaff/README.md) |
+| [git-commands](#git-commands) | Git workflow helpers | [README](git-commands/README.md) |
+| [tododo](#tododo) | Manage TODO comments | [README](tododo/README.md) |
+
+## Dependencies
+
+| Dependency | Required by | Install |
+|---|---|---|
+| [Claude Code](https://claude.ai/code) | all plugins | — |
+| [git](https://git-scm.com) | `git-commands`, `tododo` | `sudo dnf install git` |
+| [glab](https://gitlab.com/gitlab-org/cli) | `git-commands` (`/mr`) | `sudo dnf install glab` |
+| [Hubstaff desktop app](https://hubstaff.com/downloads) + CLI binary | `hubstaff` | Download from Hubstaff; set path via `HUBSTAFF_CLI` env var |
+| Python 3.10+ | `hubstaff`, `tododo` | pre-installed on most systems |
+
+## Installation
+
+```bash
+make install          # install all plugins
+make install-hubstaff # install a specific plugin
+```
 
 ---
 
 ## jira-tasks
 
-Генерирует текст для Jira-задачи (title + description) через диалог.
+Generates Jira task text (title + description) through an interactive dialogue.
 
-### Установка
+### Install
 
 ```bash
 cd jira-tasks && ./install.sh
 ```
 
-### Команда `/jira`
+### Command `/jira`
 
 ```
-/jira <тезисы задачи>
+/jira <task notes>
 ```
 
-Явный вызов — ты сам решаешь когда запустить и передаёшь тезисы как аргумент. Claude анализирует их, задаёт уточняющие вопросы по недостающим деталям, генерирует готовый текст на английском.
+Explicit invocation — pass rough notes as the argument. Claude analyzes them, asks clarifying questions about missing details, and generates ready-to-copy English text.
 
-**Структура описания:**
-- **Context** — почему задача нужна
-- **Expected outcome** — что изменится после выполнения
-- **Technical details** — затронутые компоненты, сервисы
-- **Dependencies** — блокеры, связанные задачи
-- **Priority** — срочность и обоснование
+**Description sections:**
+- **Context** — why the task is needed
+- **Expected outcome** — what changes after completion
+- **Technical details** — affected components and services
+- **Dependencies** — blockers and related tasks
+- **Priority** — urgency and justification
 
-Секции без информации не включаются.
+Sections with no relevant information are omitted.
 
-### Скилл `jira-tasks`
+### Skill `jira-tasks`
 
-Автосрабатывает из контекста разговора — не нужно вызывать явно. Срабатывает когда в сообщении есть слово **"Jira"** и намерение создать задачу:
+Auto-triggers from conversation context — no explicit invocation needed. Fires when a message contains the word **"Jira"** with intent to create a task:
 
-> "создай задачу в Jira", "оформи в Jira", "jira тикет", "задачу в Jira"
+> "create a Jira task", "put in Jira", "make a Jira ticket"
 
-Использует контекст текущего разговора — может пропустить часть вопросов если информация уже есть.
+Uses current conversation context and may skip questions already answered in the dialogue.
 
-По сути `/jira` и `jira-tasks` реализуют одну и ту же логику — разница только в способе запуска: команда вызывается явно, скилл подхватывает намерение из диалога.
+Both `/jira` and `jira-tasks` implement the same logic — the difference is only in how they are invoked: the command is called explicitly, the skill picks up intent from the conversation.
 
 ---
 
 ## hubstaff
 
-Управление Hubstaff тайм-трекером через CLI.
+Manage Hubstaff time tracking via CLI.
 
-### Установка
+### Install
 
 ```bash
 cd hubstaff && ./install.sh
 ```
 
-### Команда `/hubstaff`
+### Command `/hubstaff`
 
 ```
 /hubstaff [status|projects|tasks|start|stop|resume]
 ```
 
-| Подкоманда | Действие |
+| Subcommand | Action |
 |---|---|
-| `status` (или без аргументов) | Текущий статус трекера |
-| `projects` | Список проектов |
-| `tasks [project_id]` | Список задач проекта (без ID — берёт активный проект) |
-| `start [task_id]` | Запустить трекинг задачи (без ID — показывает список) |
-| `stop` | Остановить трекер |
-| `resume` | Возобновить трекер |
+| `status` (or no arguments) | Current tracker status |
+| `projects` | List all projects |
+| `tasks [project_id]` | List project tasks (omit ID to use active project) |
+| `start [task_id]` | Start tracking a task (omit ID to pick from list) |
+| `stop` | Stop the tracker |
+| `resume` | Resume the tracker |
 
-Под капотом — Python-обёртка над `HubstaffCLI.bin.x86_64`, парсит JSON и возвращает чистый текст.
+Internally uses a Python wrapper over `HubstaffCLI.bin.x86_64` — parses JSON and returns clean text output.
 
-### Скилл `hubstaff`
+### Skill `hubstaff`
 
-Автосрабатывает по ключевым словам: **hubstaff, хабстафф, хб, hb, трекер, трекинг**
+Auto-triggers on keywords: **hubstaff, хабстафф, хб, hb, трекер, трекинг**
 
-Примеры:
-> "включи трекер", "останови трекер", "статус трекера", "покажи задачи в хб", "запусти трекинг"
+Examples:
+> "включи трекер", "останови трекер", "статус трекера", "покажи задачи в хб"
 
 ---
 
 ## git-commands
 
-Git-команды для повседневного воркфлоу.
+Git workflow commands.
 
-### Установка
+### Install
 
 ```bash
 cd git-commands && ./install.sh
 ```
 
-### Команда `/commit`
+### Command `/commit`
 
-Создаёт git-коммит в формате conventional commits.
+Creates a git commit in conventional commits format.
 
 ```
 /commit [message] | --no-verify | --amend
 ```
 
-- Анализирует diff, предлагает разбить на несколько коммитов если изменения разнородные
-- По умолчанию запускает pre-commit проверки (`pnpm lint`, `pnpm build`, `pnpm generate:docs`)
-- `--no-verify` — пропустить проверки
-- Если ничего не стейджировано — добавляет все изменения автоматически
+- Analyzes the diff and suggests splitting into multiple commits if changes are unrelated
+- Runs pre-commit checks by default (`pnpm lint`, `pnpm build`, `pnpm generate:docs`)
+- `--no-verify` — skip pre-commit checks
+- If nothing is staged — automatically stages all changes
 
-### Команда `/generate-pr`
+### Command `/generate-pr`
 
-Генерирует описание Pull Request из текущей ветки.
+Generates a Pull Request description from the current branch.
 
 ```
 /generate-pr [target-branch]  # default: master
 ```
 
-Анализирует коммиты и diff, создаёт файл `prs/<source>__to__<target>.md` с:
-- Заголовком (до 72 символов)
-- **Summary** — зачем этот PR
-- **Changes** — список изменений по категориям
+Analyzes commits and diff, saves output to `prs/<source>__to__<target>.md` with:
+- Title (max 72 characters)
+- **Summary** — the purpose of the PR
+- **Changes** — grouped list of changes by category
 
-### Команда `/mr`
+### Command `/mr`
 
-Создаёт GitLab Merge Request через `glab` на основе файла из `prs/`.
+Creates a GitLab Merge Request via `glab` using a description file from `prs/`.
 
 ```
 /mr
 ```
 
-1. Находит файлы в `prs/` для текущей ветки
-2. Если файлов несколько — показывает список с target-веткой и датой, спрашивает какой использовать
-3. Парсит title и description из файла
-4. Пушит текущую ветку
-5. Создаёт MR через `glab mr create`
+1. Finds files in `prs/` matching the current branch
+2. If multiple files found — shows a list with target branch and date, asks which to use
+3. Parses title and description from the file
+4. Pushes the current branch
+5. Creates the MR via `glab mr create`
 
 ---
 
 ## tododo
 
-Управление TODO/FIXME/HACK/XXX-комментариями в кодовой базе.
+Manage TODO/FIXME/HACK/XXX comments across a codebase.
 
-### Установка
+### Install
 
 ```bash
 cd tododo && ./install.sh
 ```
 
-### Команда `/tododo`
+### Command `/tododo`
 
 ```
 /tododo [list|edit|remove|run|explore|assign-ids|next|help] [args...]
 ```
 
-| Подкоманда | Действие |
+| Subcommand | Action |
 |---|---|
-| `list` (или без аргументов) | Список всех TODO сгруппированных по файлам |
-| `edit <id> <text>` | Изменить текст TODO |
-| `remove <id>` | Удалить TODO-комментарий |
-| `run [id...]` | Реализовать TODO и удалить комментарий |
-| `explore [id...]` | Проанализировать и переписать расплывчатые TODO с конкретным планом |
-| `assign-ids` | Присвоить стабильные ID всем безымянным TODO |
-| `next` | Показать самый приоритетный TODO и предложить реализовать |
-| `help` | Справка |
+| `list` (or no arguments) | List all TODOs grouped by file |
+| `edit <id> <text>` | Change the text of a TODO |
+| `remove <id>` | Delete a TODO comment |
+| `run [id...]` | Implement a TODO and remove the comment |
+| `explore [id...]` | Analyze and rewrite vague TODOs with a concrete plan |
+| `assign-ids` | Embed stable IDs into all unnamed TODOs |
+| `next` | Surface the most actionable TODO and offer to implement it |
+| `help` | Show quick reference |
 
-**Рекомендуемый воркфлоу:** `list` → `explore` (прояснить расплывчатые) → `run` или `next`
+**Recommended workflow:** `list` → `explore` (clarify vague ones) → `run` or `next`
 
-### Команда `/tododo:interface`
+### Command `/tododo:interface`
 
-Открывает веб-интерфейс для визуального выбора TODO и копирования.
+Opens a web UI for visual TODO selection and clipboard copy.
 
-### Скилл `tododo`
+### Skill `tododo`
 
-Автосрабатывает когда пользователь говорит о работе с TODO-комментариями:
-> "покажи TODO", "найди все TODO", "запусти TODO #3", "реализуй TODO"
+Auto-triggers when the user mentions working with TODO comments:
+> "show TODOs", "find all TODOs", "run TODO #3", "implement a TODO"
