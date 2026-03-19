@@ -4,8 +4,24 @@ Manage Hubstaff time tracking from Claude Code. Wraps the Hubstaff CLI binary wi
 
 ## Requirements
 
-- Hubstaff desktop app installed and running at `/home/ya_boiko/Hubstaff/HubstaffCLI.bin.x86_64`
+- [Hubstaff desktop app](https://hubstaff.com/downloads) installed and running
+- Hubstaff CLI binary (path configured during `./install.sh`)
 - Python 3.10+
+
+During install, the script searches common locations automatically. If not found, it prompts for the path and saves it to `~/.claude/scripts/hubstaff/config`.
+
+To update the path later, edit the config file:
+
+```bash
+# ~/.claude/scripts/hubstaff/config
+HUBSTAFF_CLI=/path/to/HubstaffCLI.bin.x86_64
+```
+
+Or set the env variable (overrides config):
+
+```bash
+export HUBSTAFF_CLI="/path/to/HubstaffCLI.bin.x86_64"
+```
 
 ## Install
 

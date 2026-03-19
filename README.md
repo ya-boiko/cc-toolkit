@@ -11,6 +11,16 @@ A collection of Claude Code plugins — commands and skills for everyday develop
 | [git-commands](#git-commands) | Git workflow helpers | [README](git-commands/README.md) |
 | [tododo](#tododo) | Manage TODO comments | [README](tododo/README.md) |
 
+## Dependencies
+
+| Dependency | Required by | Install |
+|---|---|---|
+| [Claude Code](https://claude.ai/code) | all plugins | — |
+| [git](https://git-scm.com) | `git-commands`, `tododo` | `sudo dnf install git` |
+| [glab](https://gitlab.com/gitlab-org/cli) | `git-commands` (`/mr`) | `sudo dnf install glab` |
+| [Hubstaff desktop app](https://hubstaff.com/downloads) + CLI binary | `hubstaff` | Download from Hubstaff; set path via `HUBSTAFF_CLI` env var |
+| Python 3.10+ | `hubstaff`, `tododo` | pre-installed on most systems |
+
 ## Installation
 
 ```bash
