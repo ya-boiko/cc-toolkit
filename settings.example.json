@@ -1,0 +1,18 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/hubstaff/hubstaff_cli.py statusline"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dirs=$(find . -maxdepth 1 -mindepth 1 -type d -exec test -e '{}/.git' ';' -print | sort | sed 's|^\\./||'); if [ -n \"$dirs\" ] && [ ! -e .git ]; then list=$(echo \"$dirs\" | paste -sd ', ' -); echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"This directory contains multiple projects: $list. Ask the user which project directory to use as the working directory for this session. Once they choose, cd into it for all subsequent work.\\\"}}\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

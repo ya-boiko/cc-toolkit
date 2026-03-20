@@ -28,6 +28,8 @@ make install          # install all plugins
 make install-hubstaff # install a specific plugin
 ```
 
+Optional: merge `settings.example.json` into `~/.claude/settings.json` for Hubstaff status line and multi-project directory detection hook.
+
 ---
 
 ## jira-tasks
