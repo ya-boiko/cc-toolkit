@@ -78,6 +78,19 @@ def cmd_status():
     return f"Tracking: {name} ({tracked})"
 
 
+def cmd_statusline():
+    data = run_cli("status")
+    if not data or not data.get("tracking"):
+        return "⏸ not tracking"
+    project = data.get("active_project", {})
+    task = data.get("active_task")
+    name = project.get("name", "?")
+    tracked = project.get("tracked_today", "0:00:00")
+    if task and task.get("name"):
+        return f"⏱ {name} > {task['name']} ({tracked})"
+    return f"⏱ {name} ({tracked})"
+
+
 def cmd_projects():
     data = run_cli("projects")
     projects = data.get("projects", [])
@@ -122,13 +135,15 @@ def cmd_resume():
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: hubstaff_cli.py <status|projects|tasks|start|stop|resume> [args]", file=sys.stderr)
+        print("Usage: hubstaff_cli.py <status|statusline|projects|tasks|start|stop|resume> [args]", file=sys.stderr)
         sys.exit(1)
 
     command = sys.argv[1]
 
     if command == "status":
         print(cmd_status())
+    elif command == "statusline":
+        print(cmd_statusline())
     elif command == "projects":
         print(cmd_projects())
     elif command == "tasks":
