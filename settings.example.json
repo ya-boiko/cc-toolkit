@@ -4,6 +4,26 @@
     "command": "python3 ~/.claude/scripts/hubstaff/hubstaff_cli.py statusline"
   },
   "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send -a 'Claude Code' -i dialog-information 'Claude Code' 'Done — waiting for input'"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send -a 'Claude Code' -u critical -i dialog-question 'Claude Code' 'Needs your attention'"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
