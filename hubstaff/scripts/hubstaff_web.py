@@ -201,7 +201,88 @@ header .status {
   color: var(--text-dim);
   margin-top: 2px;
   font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin-left: -4px;
 }
+.task-desc:hover { background: var(--surface2); }
+.task-desc-empty {
+  color: var(--text-dim);
+  opacity: 0.5;
+  margin-top: 2px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin-left: -4px;
+  font-style: italic;
+}
+.task-desc-empty:hover { background: var(--surface2); }
+textarea.edit-area {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 6px 8px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+textarea.edit-area:focus { border-color: var(--accent); }
+.notes-section {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.notes-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+textarea.notes-area {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 10px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+textarea.notes-area:focus { border-color: var(--accent); }
+.save-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  opacity: 0.6;
+}
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--green);
+  color: var(--bg);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 100;
+}
+.toast.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -223,22 +304,21 @@ header .status {
     <div class="report-empty">Loading...</div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 let availableDates = new Set();
-let currentYear, currentMonth; // 0-indexed month
+let currentYear, currentMonth;
 let activeDate = null;
+let currentReport = null;
 
 async function init() {
   const resp = await fetch('/api/dates');
   const dates = await resp.json();
   availableDates = new Set(dates);
-
   document.getElementById('report-count').textContent = dates.length + ' report' + (dates.length === 1 ? '' : 's');
-
   if (dates.length > 0) {
-    // dates are sorted newest-first from API
     const latest = dates[0];
     const [y, m] = latest.split('-').map(Number);
     currentYear = y;
@@ -255,40 +335,28 @@ async function init() {
 
 function renderCalendar() {
   document.getElementById('cal-title').textContent = MONTHS[currentMonth] + ' ' + currentYear;
-
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const offset = (firstDay + 6) % 7; // Monday-first
-
+  const offset = (firstDay + 6) % 7;
   const today = new Date();
   const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-
   let html = '';
   const dows = ['Mo','Tu','We','Th','Fr','Sa','Su'];
   for (const d of dows) html += '<span class="cal-dow">' + d + '</span>';
-
   for (let i = 0; i < offset; i++) html += '<span class="cal-day empty"></span>';
-
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
     const classes = ['cal-day'];
     if (availableDates.has(dateStr)) classes.push('has-report');
     if (dateStr === activeDate) classes.push('active');
     if (dateStr === todayStr) classes.push('today');
-
     const onclick = availableDates.has(dateStr) ? ' onclick="selectDate(\'' + dateStr + '\')"' : '';
     html += '<span class="' + classes.join(' ') + '"' + onclick + '>' + day + '</span>';
   }
-
   document.getElementById('cal-grid').innerHTML = html;
-
-  // Sidebar footer: month total
-  let monthTotal = 0;
   let monthReports = 0;
   const prefix = currentYear + '-' + String(currentMonth + 1).padStart(2, '0');
-  for (const d of availableDates) {
-    if (d.startsWith(prefix)) monthReports++;
-  }
+  for (const d of availableDates) { if (d.startsWith(prefix)) monthReports++; }
   document.getElementById('sidebar-footer').textContent = monthReports + ' report' + (monthReports === 1 ? '' : 's') + ' this month';
 }
 
@@ -297,7 +365,6 @@ function prevMonth() {
   if (currentMonth < 0) { currentMonth = 11; currentYear--; }
   renderCalendar();
 }
-
 function nextMonth() {
   currentMonth++;
   if (currentMonth > 11) { currentMonth = 0; currentYear++; }
@@ -307,54 +374,131 @@ function nextMonth() {
 async function selectDate(dateStr) {
   activeDate = dateStr;
   renderCalendar();
-
   const panel = document.getElementById('report');
   panel.innerHTML = '<div class="report-empty">Loading...</div>';
-
   try {
     const resp = await fetch('/api/report/' + dateStr);
-    if (!resp.ok) {
-      panel.innerHTML = '<div class="report-empty">Failed to load report.</div>';
-      return;
-    }
-    const data = await resp.json();
-    renderReport(data);
+    if (!resp.ok) { panel.innerHTML = '<div class="report-empty">Failed to load report.</div>'; return; }
+    currentReport = await resp.json();
+    renderReport();
   } catch (e) {
     panel.innerHTML = '<div class="report-empty">Error: ' + escHtml(e.message) + '</div>';
   }
 }
 
-function renderReport(data) {
+function renderReport() {
+  const data = currentReport;
   const panel = document.getElementById('report');
-
   if (!data.projects || data.projects.length === 0) {
     panel.innerHTML = '<div class="report-date">' + escHtml(data.date) + '</div>' +
-      '<div style="color: var(--text-dim)">No tracked time for this day.</div>';
+      '<div style="color: var(--text-dim)">No tracked time for this day.</div>' +
+      renderNotesSection(data.notes || '');
     return;
   }
-
   let html = '<div class="report-date">' + escHtml(data.date) + '</div>';
-
-  for (const proj of data.projects) {
+  for (let pi = 0; pi < data.projects.length; pi++) {
+    const proj = data.projects[pi];
     html += '<div class="project-block">';
     html += '<div class="project-header"><span>' + escHtml(proj.name) + '</span>';
     if (proj.tracked) html += '<span class="project-time">' + escHtml(proj.tracked) + '</span>';
     html += '</div>';
-
     if (proj.tasks && proj.tasks.length > 0) {
-      for (const task of proj.tasks) {
+      for (let ti = 0; ti < proj.tasks.length; ti++) {
+        const task = proj.tasks[ti];
         html += '<div class="task-item">';
         html += '<div><span class="task-name">' + escHtml(task.name) + '</span>';
         if (task.tracked) html += '<span class="task-time">' + escHtml(task.tracked) + '</span>';
         html += '</div>';
-        if (task.description) html += '<div class="task-desc">' + escHtml(task.description) + '</div>';
+        if (task.description) {
+          html += '<div class="task-desc" onclick="editDesc(' + pi + ',' + ti + ')">' + escHtml(task.description) + '</div>';
+        } else {
+          html += '<div class="task-desc-empty" onclick="editDesc(' + pi + ',' + ti + ')">+ add description</div>';
+        }
         html += '</div>';
       }
     }
     html += '</div>';
   }
-
+  html += renderNotesSection(data.notes || '');
   panel.innerHTML = html;
+}
+
+function renderNotesSection(notes) {
+  return '<div class="notes-section">' +
+    '<div class="notes-label">Notes</div>' +
+    '<textarea class="notes-area" placeholder="Add notes for this day..." onblur="saveNotes(this)">' + escHtml(notes) + '</textarea>' +
+    '<div class="save-hint">auto-saves on blur</div>' +
+    '</div>';
+}
+
+function editDesc(pi, ti) {
+  const task = currentReport.projects[pi].tasks[ti];
+  const items = document.querySelectorAll('.task-item');
+  let idx = 0;
+  for (let p = 0; p < currentReport.projects.length; p++) {
+    const tasks = currentReport.projects[p].tasks || [];
+    for (let t = 0; t < tasks.length; t++) {
+      if (p === pi && t === ti) {
+        const item = items[idx];
+        const descEl = item.querySelector('.task-desc, .task-desc-empty');
+        if (!descEl || descEl.tagName === 'TEXTAREA') return;
+        const ta = document.createElement('textarea');
+        ta.className = 'edit-area';
+        ta.value = task.description || '';
+        ta.setAttribute('data-pi', pi);
+        ta.setAttribute('data-ti', ti);
+        ta.onblur = function() { saveDesc(this); };
+        ta.onkeydown = function(e) {
+          if (e.key === 'Escape') { this.blur(); }
+        };
+        descEl.replaceWith(ta);
+        ta.focus();
+        return;
+      }
+      idx++;
+    }
+  }
+}
+
+async function saveDesc(ta) {
+  const pi = parseInt(ta.getAttribute('data-pi'));
+  const ti = parseInt(ta.getAttribute('data-ti'));
+  const newDesc = ta.value.trim();
+  currentReport.projects[pi].tasks[ti].description = newDesc;
+  await saveReport();
+  renderReport();
+}
+
+async function saveNotes(ta) {
+  const newNotes = ta.value.trim();
+  if (newNotes === (currentReport.notes || '')) return;
+  currentReport.notes = newNotes;
+  await saveReport();
+  showToast('Saved');
+}
+
+async function saveReport() {
+  try {
+    const resp = await fetch('/api/report/' + activeDate, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(currentReport),
+    });
+    if (resp.ok) {
+      showToast('Saved');
+    } else {
+      showToast('Save failed');
+    }
+  } catch (e) {
+    showToast('Save error: ' + e.message);
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
 }
 
 function escHtml(s) {
@@ -375,6 +519,8 @@ def _parse_report(filepath):
         ## ProjectName — H:MM:SS
         ### Task name — H:MM:SS
         Description text.
+        ## Notes
+        Free text notes.
     """
     with open(filepath, encoding="utf-8") as f:
         content = f.read()
@@ -382,8 +528,10 @@ def _parse_report(filepath):
     lines = content.split("\n")
     date = None
     projects = []
+    notes = ""
     current_project = None
     current_task = None
+    in_notes = False
 
     for line in lines:
         line_stripped = line.strip()
@@ -392,6 +540,21 @@ def _parse_report(filepath):
         m = re.match(r"^#\s+(\d{4}-\d{2}-\d{2})\s*$", line_stripped)
         if m:
             date = m.group(1)
+            in_notes = False
+            continue
+
+        # Notes section: ## Notes
+        if re.match(r"^##\s+Notes\s*$", line_stripped, re.IGNORECASE):
+            in_notes = True
+            current_project = None
+            current_task = None
+            continue
+
+        if in_notes:
+            if notes:
+                notes += "\n" + line.rstrip()
+            elif line_stripped:
+                notes = line.rstrip()
             continue
 
         # Project header: ## ProjectName — H:MM:SS
@@ -424,7 +587,41 @@ def _parse_report(filepath):
             else:
                 current_task["description"] = line_stripped
 
-    return {"date": date or os.path.basename(filepath).replace(".md", ""), "projects": projects}
+    result = {"date": date or os.path.basename(filepath).replace(".md", ""), "projects": projects}
+    if notes.strip():
+        result["notes"] = notes.strip()
+    return result
+
+
+def _write_report(filepath, data):
+    """Write structured report data back to markdown."""
+    lines = ["# " + data.get("date", ""), ""]
+
+    for proj in data.get("projects", []):
+        header = "## " + proj["name"]
+        if proj.get("tracked"):
+            header += " \u2014 " + proj["tracked"]
+        lines.append(header)
+        lines.append("")
+
+        for task in proj.get("tasks", []):
+            task_header = "### " + task["name"]
+            if task.get("tracked"):
+                task_header += " \u2014 " + task["tracked"]
+            lines.append(task_header)
+            if task.get("description"):
+                lines.append(task["description"])
+            lines.append("")
+
+    notes = data.get("notes", "").strip()
+    if notes:
+        lines.append("## Notes")
+        lines.append("")
+        lines.append(notes)
+        lines.append("")
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 def _list_report_dates(reports_dir):
@@ -455,6 +652,13 @@ class ReportHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404)
 
+    def do_POST(self):
+        if self.path.startswith("/api/report/"):
+            date_str = self.path[len("/api/report/"):]
+            self._save_report(date_str)
+        else:
+            self.send_error(404)
+
     def _serve_html(self):
         body = HTML_PAGE.encode("utf-8")
         self.send_response(200)
@@ -482,6 +686,26 @@ class ReportHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._json_response(500, {"error": str(e)})
 
+    def _save_report(self, date_str):
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+            self._json_response(400, {"error": "invalid date format"})
+            return
+        filepath = os.path.join(self.reports_dir, date_str + ".md")
+        if not os.path.isfile(filepath):
+            self._json_response(404, {"error": "report not found"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length).decode("utf-8")
+            data = json.loads(body)
+            data["date"] = date_str
+            _write_report(filepath, data)
+            self._json_response(200, {"ok": True})
+        except (json.JSONDecodeError, ValueError) as e:
+            self._json_response(400, {"error": str(e)})
+        except Exception as e:
+            self._json_response(500, {"error": str(e)})
+
     def _json_response(self, code, data):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
@@ -491,7 +715,7 @@ class ReportHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        if args and isinstance(args[0], str) and args[0].startswith("GET /api"):
+        if args and isinstance(args[0], str) and "/api" in args[0]:
             return
         super().log_message(fmt, *args)
 
