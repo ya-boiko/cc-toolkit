@@ -227,7 +227,7 @@ Add to `~/.claude/CLAUDE.md` so Claude Code follows these rules in all projects:
 ```markdown
 ## Git Worktrees
 
-Always use `wt` (worktrunk) to create and manage git worktrees. Never use `git worktree` directly.
+[Worktrunk](https://github.com/max-sixty/worktrunk) (`wt`) is a CLI tool for managing git worktrees — isolated working copies of a repo that share the same `.git` directory. Always use `wt` instead of `git worktree` directly.
 
 ```bash
 wt new <branch-name>    # create a new worktree
