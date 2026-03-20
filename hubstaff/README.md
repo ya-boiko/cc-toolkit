@@ -86,6 +86,26 @@ Stops the tracker.
 
 Resumes the last tracked task.
 
+## Status Line
+
+Shows the current Hubstaff tracking status in the Claude Code status bar.
+
+**When tracking:** `⏱ Proko > Task name (2:13:22)`
+**When not tracking:** `⏸ not tracking`
+
+To enable, add to `~/.claude/settings.json` (after running `./install.sh`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/hubstaff/hubstaff_cli.py statusline"
+  }
+}
+```
+
+Then open `/hooks` in Claude Code to reload the settings.
+
 ## Skill `hubstaff`
 
 Auto-triggers when the message contains one of the keywords with intent to interact with the tracker.
