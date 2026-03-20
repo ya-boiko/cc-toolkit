@@ -182,12 +182,17 @@ def walk_files(root: str):
                     yield filepath
 
 
-def scan_file(filepath: str, root: str, context: int = 0) -> list[dict]:
+def scan_file(filepath: str, root: str, context: int = 0, after: int | None = None) -> list[dict]:
     """Scan a single file for TODO comments.
 
     Returns list of dicts with keys: relpath, line_no, keyword, text,
     and optionally context_lines (list of (line_no, line_text) pairs).
+
+    context: lines before the TODO (and after, if after is None)
+    after: lines after the TODO (overrides context for the after side)
     """
+    before = context
+    after_n = after if after is not None else context
     results = []
     try:
         with open(filepath, encoding="utf-8", errors="replace") as f:
@@ -209,9 +214,9 @@ def scan_file(filepath: str, root: str, context: int = 0) -> list[dict]:
                 }
                 if explicit_id_str is not None:
                     entry["explicit_id"] = int(explicit_id_str)
-                if context > 0:
-                    start = max(0, line_no_0 - context)
-                    end = min(len(lines), line_no_0 + context + 1)
+                if before > 0 or after_n > 0:
+                    start = max(0, line_no_0 - before)
+                    end = min(len(lines), line_no_0 + after_n + 1)
                     ctx = []
                     for i in range(start, end):
                         ctx.append((i + 1, lines[i].rstrip("\n")))
@@ -233,6 +238,13 @@ def main():
         help="Show N lines of context around each TODO (default: 2)",
     )
     parser.add_argument(
+        "--after",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Show N lines after each TODO, overriding --context for the after side",
+    )
+    parser.add_argument(
         "--group",
         action="store_true",
         help="Group output by file with file headers",
@@ -252,7 +264,7 @@ def main():
 
     todos = []
     for filepath in walk_files(root):
-        todos.extend(scan_file(filepath, root, context=args.context))
+        todos.extend(scan_file(filepath, root, context=args.context, after=args.after))
 
     if not todos:
         print("No TODO comments found.")

@@ -225,6 +225,8 @@ header .status {
 .ctx-ln  { color: var(--text-dim); }
 .ctx-sep { color: var(--text-dim); }
 .ctx-code { color: var(--text); }
+.ctx-todo-ln { color: var(--accent); }
+.ctx-todo-code { color: var(--accent); }
 .empty-state {
   text-align: center;
   padding: 80px 24px;
@@ -385,9 +387,8 @@ function renderItem(t, addedKeys, showFile) {
   const isNew = addedKeys && addedKeys.has(key);
   const isExp = expanded.has(ekey);
 
-  // Filter to after-lines only
-  const afterLines = (t.context_lines || []).filter(cl => cl[0] > t.line_no);
-  const hasCtx = afterLines.length > 0;
+  const ctxLines = t.context_lines || [];
+  const hasCtx = ctxLines.length > 0;
 
   const cls = ['todo-item'];
   if (selected.has(key)) cls.push('selected');
@@ -411,10 +412,11 @@ function renderItem(t, addedKeys, showFile) {
   html += '<div class="todo-context" data-expand-key="' + escEkey + '" style="display:' + ctxDisplay + '">';
   if (hasCtx) {
     html += '<pre>';
-    for (const [ln, lt] of afterLines) {
-      html += '<span class="ctx-ln">' + String(ln).padStart(4) + '</span>';
+    for (const [ln, lt] of ctxLines) {
+      const isTodoLine = ln === t.line_no;
+      html += '<span class="ctx-ln' + (isTodoLine ? ' ctx-todo-ln' : '') + '">' + String(ln).padStart(4) + '</span>';
       html += '<span class="ctx-sep">:</span>';
-      html += '<span class="ctx-code">' + escHtml(lt) + '</span>\n';
+      html += '<span class="ctx-code' + (isTodoLine ? ' ctx-todo-code' : '') + '">' + escHtml(lt) + '</span>\n';
     }
     html += '</pre>';
   }
@@ -531,7 +533,7 @@ class TodoHandler(BaseHTTPRequestHandler):
     def _serve_todos(self):
         try:
             result = subprocess.run(
-                [sys.executable, SCANNER_PATH, "--json", "--context", "3", self.root],
+                [sys.executable, SCANNER_PATH, "--json", "--context", "3", "--after", "5", self.root],
                 capture_output=True,
                 text=True,
                 timeout=30,
