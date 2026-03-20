@@ -290,6 +290,8 @@ def main():
             }
             if "explicit_id" in todo:
                 entry["explicit_id"] = todo["explicit_id"]
+            if "context_lines" in todo:
+                entry["context_lines"] = todo["context_lines"]
             out.append(entry)
         json.dump(out, sys.stdout, ensure_ascii=False)
         print()
