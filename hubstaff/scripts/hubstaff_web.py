@@ -207,6 +207,15 @@ header .status {
   margin-left: -4px;
 }
 .task-desc:hover { background: var(--surface2); }
+.task-desc p { margin: 4px 0; }
+.task-desc ul { margin: 4px 0 4px 16px; }
+.task-desc li { margin: 2px 0; }
+.task-desc code {
+  background: var(--surface2);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
 .task-desc-empty {
   color: var(--text-dim);
   opacity: 0.5;
@@ -410,7 +419,7 @@ function renderReport() {
         if (task.tracked) html += '<span class="task-time">' + escHtml(task.tracked) + '</span>';
         html += '</div>';
         if (task.description) {
-          html += '<div class="task-desc" onclick="editDesc(' + pi + ',' + ti + ')">' + escHtml(task.description) + '</div>';
+          html += '<div class="task-desc" onclick="editDesc(' + pi + ',' + ti + ')">' + renderMarkdown(task.description) + '</div>';
         } else {
           html += '<div class="task-desc-empty" onclick="editDesc(' + pi + ',' + ti + ')">+ add description</div>';
         }
@@ -505,6 +514,30 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function renderMarkdown(s) {
+  const escaped = escHtml(s);
+  const lines = escaped.split('\n');
+  let html = '';
+  let inList = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('- ')) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += '<li>' + formatInline(trimmed.slice(2)) + '</li>';
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (trimmed) html += '<p>' + formatInline(trimmed) + '</p>';
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function formatInline(s) {
+  return s.replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
 init();
 </script>
 </body>
@@ -583,7 +616,7 @@ def _parse_report(filepath):
         # Description lines (non-empty, not a heading)
         if line_stripped and not line_stripped.startswith("#") and current_task is not None:
             if current_task["description"]:
-                current_task["description"] += " " + line_stripped
+                current_task["description"] += "\n" + line_stripped
             else:
                 current_task["description"] = line_stripped
 
