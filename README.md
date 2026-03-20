@@ -190,6 +190,10 @@ cd tododo && ./install.sh
 
 Opens a web UI for visual TODO selection and clipboard copy.
 
+### `.todoignore`
+
+Place a `.todoignore` file in your project root to exclude files from scanning — same syntax as `.gitignore`. Searched upward from the project root, so a parent-directory `.todoignore` applies to multiple projects.
+
 ### Skill `tododo`
 
 Auto-triggers when the user mentions working with TODO comments:
