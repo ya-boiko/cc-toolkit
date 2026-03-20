@@ -97,6 +97,10 @@ cd hubstaff && ./install.sh
 
 Internally uses a Python wrapper over `HubstaffCLI.bin.x86_64` — parses JSON and returns clean text output.
 
+### Command `/hubstaff:interface`
+
+Opens a web dashboard for browsing daily reports — calendar sidebar with highlighted dates, report content on the right.
+
 ### Skill `hubstaff`
 
 Auto-triggers on keywords: **hubstaff, хабстафф, хб, hb, трекер, трекинг**

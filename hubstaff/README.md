@@ -102,6 +102,14 @@ Migrated transcription records from DB replica to knowledgebase.
 Implemented role-based access control for authorized users.
 ```
 
+## Web Dashboard
+
+```
+/hubstaff:interface [--port PORT]
+```
+
+Opens a web UI for browsing daily reports. Calendar sidebar with highlighted dates on the left, report content on the right. Default port: 8788.
+
 ## Status Line
 
 Shows the current Hubstaff tracking status in the Claude Code status bar.
