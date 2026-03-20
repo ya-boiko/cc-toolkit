@@ -9,6 +9,7 @@
 #   For cloning: git submodule update --init
 
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -156,7 +157,64 @@ def should_skip_path(filepath: str) -> bool:
     return filename in SKIP_FILES
 
 
-def walk_files(root: str):
+def load_todoignore(root: str) -> list[tuple[str, list[str]]]:
+    """Walk upward from root collecting .todoignore files.
+
+    Returns list of (directory, patterns) from innermost to outermost.
+    Patterns follow gitignore syntax: one per line, # for comments.
+    """
+    rules = []
+    current = os.path.abspath(root)
+    while True:
+        ignore_file = os.path.join(current, ".todoignore")
+        if os.path.isfile(ignore_file):
+            patterns = []
+            try:
+                with open(ignore_file) as f:
+                    for line in f:
+                        stripped = line.strip()
+                        if stripped and not stripped.startswith("#"):
+                            patterns.append(stripped)
+            except OSError:
+                pass
+            if patterns:
+                rules.append((current, patterns))
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return rules
+
+
+def should_skip_by_todoignore(filepath: str, rules: list[tuple[str, list[str]]]) -> bool:
+    """Check if a file matches any .todoignore pattern."""
+    if not rules:
+        return False
+    filename = os.path.basename(filepath)
+    for ignore_dir, patterns in rules:
+        try:
+            relpath = os.path.relpath(filepath, ignore_dir).replace(os.sep, "/")
+        except ValueError:
+            continue
+        for pattern in patterns:
+            pat = pattern.rstrip("/")
+            if not pat:
+                continue
+            # Match against full relative path
+            if fnmatch.fnmatch(relpath, pat):
+                return True
+            # Pattern without slash: also match against filename
+            if "/" not in pat and fnmatch.fnmatch(filename, pat):
+                return True
+            # Handle ** by simplifying to a single wildcard level
+            if "**" in pat:
+                simple = pat.replace("**/", "").replace("**", "*")
+                if fnmatch.fnmatch(relpath, simple) or fnmatch.fnmatch(filename, simple):
+                    return True
+    return False
+
+
+def walk_files(root: str, todoignore_rules: list[tuple[str, list[str]]] | None = None):
     """Yield file paths, skipping ignored directories and binary files."""
     git_files = get_git_tracked_files(root)
 
@@ -167,6 +225,7 @@ def walk_files(root: str):
                 not should_skip_file(filepath)
                 and not should_skip_path(filepath)
                 and os.path.isfile(filepath)
+                and not should_skip_by_todoignore(filepath, todoignore_rules or [])
             ):
                 yield filepath
     else:
@@ -178,7 +237,7 @@ def walk_files(root: str):
 
             for filename in sorted(filenames):
                 filepath = os.path.join(dirpath, filename)
-                if not should_skip_file(filepath):
+                if not should_skip_file(filepath) and not should_skip_by_todoignore(filepath, todoignore_rules or []):
                     yield filepath
 
 
@@ -262,8 +321,10 @@ def main():
         print(f"Error: '{root}' is not a directory", file=sys.stderr)
         sys.exit(1)
 
+    todoignore_rules = load_todoignore(root)
+
     todos = []
-    for filepath in walk_files(root):
+    for filepath in walk_files(root, todoignore_rules):
         todos.extend(scan_file(filepath, root, context=args.context, after=args.after))
 
     if not todos:
