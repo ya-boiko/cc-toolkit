@@ -167,10 +167,10 @@ Creates a GitLab Merge Request via `glab` using a description file from `prs/`.
 Switches the working directory for the current session.
 
 ```
-/cd <directory>
+/cd [directory]
 ```
 
-Useful with worktree-based workflows. See [git-commands README](git-commands/README.md#cd) for a companion SessionStart hook that auto-detects multi-project directories.
+Without arguments — lists subdirectories and asks which one to use. Useful with worktree-based workflows. See [git-commands README](git-commands/README.md#cd) for a companion SessionStart hook that auto-detects multi-project directories.
 
 ---
 
