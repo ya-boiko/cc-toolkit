@@ -58,6 +58,17 @@ header h1 {
   font-weight: 600;
   color: var(--accent);
 }
+#type-counts {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  margin-left: 16px;
+}
+#type-counts .kw-count { font-weight: 600; }
+#type-counts .kw-count.TODO  { color: var(--accent); }
+#type-counts .kw-count.FIXME { color: var(--red); }
+#type-counts .kw-count.HACK  { color: var(--orange); }
+#type-counts .kw-count.XXX   { color: var(--yellow); }
 header .status {
   font-size: 11px;
   color: var(--text-dim);
@@ -260,6 +271,7 @@ header .status {
 
 <header>
   <h1>tododo</h1>
+  <span id="type-counts"></span>
   <span class="status"><span class="dot"></span>polling</span>
 </header>
 
@@ -307,6 +319,7 @@ function updateTodos(newTodos) {
   selected = new Set([...selected].filter(k => newKeys.has(k)));
   todos = newTodos;
   prevKeys = newKeys;
+  updateTypeCounts();
   render(addedKeys);
 }
 
@@ -468,6 +481,17 @@ function toggleGroupSelect(groupVal, mode) {
     else selected.add(k);
   }
   render();
+}
+
+function updateTypeCounts() {
+  const counts = {};
+  for (const t of todos) counts[t.keyword] = (counts[t.keyword] || 0) + 1;
+  const order = ['TODO', 'FIXME', 'HACK', 'XXX'];
+  const el = document.getElementById('type-counts');
+  el.innerHTML = order
+    .filter(k => counts[k])
+    .map(k => '<span class="kw-count ' + k + '">' + k + ' ' + counts[k] + '</span>')
+    .join('');
 }
 
 function updateToolbar() {
