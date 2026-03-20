@@ -86,6 +86,22 @@ Stops the tracker.
 
 Resumes the last tracked task.
 
+#### `summary`
+
+Generates a daily markdown report with per-task time breakdown and AI-synthesized descriptions of work done (from Claude Code session history). Saves to `~/.hubstaff-daily/YYYY-MM-DD.md`.
+
+Also triggered automatically after `stop`.
+
+```
+## Proko — 5:23:00
+
+### migrate data — 2:10:00
+Migrated transcription records from DB replica to knowledgebase.
+
+### add RBAC — 3:13:00
+Implemented role-based access control for authorized users.
+```
+
 ## Status Line
 
 Shows the current Hubstaff tracking status in the Claude Code status bar.

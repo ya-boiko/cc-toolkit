@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Hubstaff CLI wrapper. Calls the Hubstaff binary, parses JSON, outputs clean text."""
+import datetime
 import json
 import os
 import subprocess
@@ -61,6 +62,45 @@ def run_cli(*args):
         sys.exit(1)
 
     return data
+
+
+def _try_cli_command(*args):
+    """Try a CLI command silently — return parsed JSON or None on any failure."""
+    try:
+        result = subprocess.run(
+            [CLI_PATH, *args],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    stdout = result.stdout.strip()
+    if not stdout:
+        return None
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(data, dict) and "error" in data:
+        return None
+    return data
+
+
+def _parse_daily_activities(data):
+    """Parse CLI activities response into list of project dicts with tasks."""
+    projects = {}
+    activities = data.get("daily_activities") or data.get("activities") or []
+    for act in activities:
+        proj_name = (act.get("project") or {}).get("name") or act.get("project_name", "?")
+        task_name = (act.get("task") or {}).get("name") or act.get("task_name", "?")
+        tracked = act.get("tracked") or act.get("duration", "0:00:00")
+        if proj_name not in projects:
+            projects[proj_name] = {"name": proj_name, "tracked": "0:00:00", "tasks": []}
+        projects[proj_name]["tasks"].append({"name": task_name, "tracked": tracked})
+    return list(projects.values())
 
 
 def cmd_status():
@@ -133,9 +173,29 @@ def cmd_resume():
     return "Resumed"
 
 
+def cmd_summary():
+    """Return today's task breakdown as a JSON string."""
+    today = datetime.date.today().isoformat()
+
+    # Experimental: try CLI commands for per-task time data
+    for cmd in ("daily_activities", "activities", "time_entries"):
+        data = _try_cli_command(cmd)
+        if data is not None:
+            projects = _parse_daily_activities(data)
+            return json.dumps({"date": today, "per_task": True, "projects": projects})
+
+    # Fallback: project-level only from status
+    status = run_cli("status")
+    project = (status or {}).get("active_project", {})
+    projects = []
+    if project:
+        projects = [{"name": project.get("name", "?"), "tracked": project.get("tracked_today", "0:00:00"), "tasks": []}]
+    return json.dumps({"date": today, "per_task": False, "projects": projects})
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: hubstaff_cli.py <status|statusline|projects|tasks|start|stop|resume> [args]", file=sys.stderr)
+        print("Usage: hubstaff_cli.py <status|statusline|projects|tasks|start|stop|resume|summary> [args]", file=sys.stderr)
         sys.exit(1)
 
     command = sys.argv[1]
@@ -158,6 +218,8 @@ def main():
         print(cmd_stop())
     elif command == "resume":
         print(cmd_resume())
+    elif command == "summary":
+        print(cmd_summary())
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         sys.exit(1)

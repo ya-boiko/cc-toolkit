@@ -1,6 +1,6 @@
 ---
 name: hubstaff
-description: "Manage Hubstaff time tracking. Use when the user mentions 'hubstaff', 'хабстафф', 'хб', 'hb', 'трекер', or 'трекинг' with intent to check status, start/stop tracking, or view tasks — e.g., 'включи трекер', 'останови трекер', 'статус трекера', 'покажи задачи в хб', 'запусти трекинг'"
+description: "Manage Hubstaff time tracking. Use when the user mentions 'hubstaff', 'хабстафф', 'хб', 'hb', 'трекер', 'трекинг', 'summary', 'итоги', 'сводка', or 'дневной отчет' with intent to check status, start/stop tracking, view tasks, or generate a daily summary — e.g., 'включи трекер', 'останови трекер', 'статус трекера', 'покажи задачи в хб', 'итоги за день', 'сводка по задачам'"
 ---
 
 # Hubstaff — Time Tracking
@@ -19,7 +19,9 @@ Commands: `status`, `projects`, `tasks [project_id]`, `start <task_id>`, `stop`,
 
 ## Behavior
 
-1. Detect intent from the user's message (start, stop, check status, list tasks/projects).
+1. Detect intent from the user's message (start, stop, check status, list tasks/projects, summary).
 2. Run the appropriate script command via Bash.
 3. If starting and no task specified — show task list, ask which one.
 4. If task list needed but not tracking — show project list first, ask which project, then show tasks.
+5. If intent = summary — run `summary` per the command instructions.
+6. If intent = stop — run `stop`, then automatically generate the daily summary (same as intent = summary).

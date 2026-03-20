@@ -82,7 +82,7 @@ cd hubstaff && ./install.sh
 ### Command `/hubstaff`
 
 ```
-/hubstaff [status|projects|tasks|start|stop|resume]
+/hubstaff [status|projects|tasks|start|stop|resume|summary]
 ```
 
 | Subcommand | Action |
@@ -91,8 +91,9 @@ cd hubstaff && ./install.sh
 | `projects` | List all projects |
 | `tasks [project_id]` | List project tasks (omit ID to use active project) |
 | `start [task_id]` | Start tracking a task (omit ID to pick from list) |
-| `stop` | Stop the tracker |
+| `stop` | Stop the tracker (auto-generates daily summary) |
 | `resume` | Resume the tracker |
+| `summary` | Generate daily report to `~/.hubstaff-daily/YYYY-MM-DD.md` |
 
 Internally uses a Python wrapper over `HubstaffCLI.bin.x86_64` — parses JSON and returns clean text output.
 
