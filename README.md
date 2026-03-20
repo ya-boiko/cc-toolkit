@@ -242,3 +242,5 @@ Merge `settings.example.json` into `~/.claude/settings.json`:
 
 - **statusLine** — Hubstaff tracking status in the Claude Code status bar
 - **SessionStart hook** — auto-detects multi-project directories and asks which one to use
+- **Stop hook** — desktop notification when Claude finishes work (`notify-send`, Linux/Fedora)
+- **Notification hook** — urgent desktop notification when Claude needs your attention (permissions, input)
