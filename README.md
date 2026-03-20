@@ -160,6 +160,16 @@ Creates a GitLab Merge Request via `glab` using a description file from `prs/`.
 4. Pushes the current branch
 5. Creates the MR via `glab mr create`
 
+### Command `/cd`
+
+Switches the working directory for the current session.
+
+```
+/cd <directory>
+```
+
+Useful with worktree-based workflows. See [git-commands README](git-commands/README.md#cd) for a companion SessionStart hook that auto-detects multi-project directories.
+
 ---
 
 ## tododo
