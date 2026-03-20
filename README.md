@@ -215,3 +215,30 @@ Place a `.todoignore` file in your project root to exclude files from scanning �
 
 Auto-triggers when the user mentions working with TODO comments:
 > "show TODOs", "find all TODOs", "run TODO #3", "implement a TODO"
+
+---
+
+## Recommendations
+
+### Global CLAUDE.md
+
+Add to `~/.claude/CLAUDE.md` so Claude Code follows these rules in all projects:
+
+```markdown
+## Git Worktrees
+
+Always use `wt` (worktrunk) to create and manage git worktrees. Never use `git worktree` directly.
+
+```bash
+wt new <branch-name>    # create a new worktree
+wt list                 # list worktrees
+wt remove <name>        # remove a worktree
+```
+```
+
+### settings.json
+
+Merge `settings.example.json` into `~/.claude/settings.json`:
+
+- **statusLine** — Hubstaff tracking status in the Claude Code status bar
+- **SessionStart hook** — auto-detects multi-project directories and asks which one to use
