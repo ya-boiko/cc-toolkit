@@ -124,7 +124,9 @@ cd git-commands && ./install.sh
 
 ### Command `/commit`
 
-Creates a git commit in conventional commits format.
+Creates a git commit. Format depends on [workspace mode](git-commands/README.md#workspace-mode):
+- `work`: `[PRJ-1234] feat: description` — asks for Jira task number
+- `personal`: `feat: description`
 
 ```
 /commit [message] | --no-verify | --amend
@@ -137,16 +139,15 @@ Creates a git commit in conventional commits format.
 
 ### Command `/generate-pr`
 
-Generates a Pull Request description from the current branch.
+Generates a Pull Request description from the current branch. Format depends on [workspace mode](git-commands/README.md#workspace-mode):
+- `work`: title with task number + Jira link in description
+- `personal`: plain title + short bullet description
 
 ```
 /generate-pr [target-branch]  # default: master
 ```
 
-Analyzes commits and diff, saves output to `prs/<source>__to__<target>.md` with:
-- Title (max 72 characters)
-- **Summary** — the purpose of the PR
-- **Changes** — grouped list of changes by category
+Analyzes commits and diff, saves output to `prs/<source>__to__<target>.md`.
 
 ### Command `/mr`
 
