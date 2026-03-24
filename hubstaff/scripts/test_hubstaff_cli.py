@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for hubstaff_cli.py wrapper."""
+import datetime
 import json
 import subprocess
 import sys
@@ -120,6 +121,58 @@ class TestResume(unittest.TestCase):
         mock_run.return_value = {"status": "Started tracking task foo"}
         output = hubstaff_cli.cmd_resume()
         self.assertEqual(output, "Resumed")
+
+
+class TestSummary(unittest.TestCase):
+    @patch("hubstaff_cli._try_cli_command")
+    def test_per_task_data_from_daily_activities(self, mock_try):
+        def side_effect(*args):
+            if args[0] == "daily_activities":
+                return {
+                    "daily_activities": [
+                        {"project": {"name": "Proko"}, "task": {"name": "migrate data"}, "tracked": "2:10:00"},
+                        {"project": {"name": "Proko"}, "task": {"name": "add RBAC"}, "tracked": "3:13:00"},
+                    ]
+                }
+            return None
+        mock_try.side_effect = side_effect
+        result = json.loads(hubstaff_cli.cmd_summary())
+        self.assertTrue(result["per_task"])
+        self.assertEqual(len(result["projects"]), 1)
+        self.assertEqual(result["projects"][0]["name"], "Proko")
+        self.assertEqual(len(result["projects"][0]["tasks"]), 2)
+        self.assertEqual(result["projects"][0]["tasks"][0]["name"], "migrate data")
+
+    @patch("hubstaff_cli.run_cli")
+    @patch("hubstaff_cli._try_cli_command")
+    def test_fallback_to_status_when_no_activities_command(self, mock_try, mock_run):
+        mock_try.return_value = None
+        mock_run.return_value = {
+            "active_project": {"name": "Proko", "tracked_today": "5:23:00"},
+            "tracking": True,
+        }
+        result = json.loads(hubstaff_cli.cmd_summary())
+        self.assertFalse(result["per_task"])
+        self.assertEqual(result["projects"][0]["name"], "Proko")
+        self.assertEqual(result["projects"][0]["tracked"], "5:23:00")
+        self.assertEqual(result["projects"][0]["tasks"], [])
+
+    @patch("hubstaff_cli.run_cli")
+    @patch("hubstaff_cli._try_cli_command")
+    def test_fallback_when_not_tracking(self, mock_try, mock_run):
+        mock_try.return_value = None
+        mock_run.return_value = {"tracking": False}
+        result = json.loads(hubstaff_cli.cmd_summary())
+        self.assertFalse(result["per_task"])
+        self.assertEqual(result["projects"], [])
+
+    @patch("hubstaff_cli.run_cli")
+    @patch("hubstaff_cli._try_cli_command")
+    def test_summary_includes_date(self, mock_try, mock_run):
+        mock_try.return_value = None
+        mock_run.return_value = {"tracking": False}
+        result = json.loads(hubstaff_cli.cmd_summary())
+        self.assertEqual(result["date"], datetime.date.today().isoformat())
 
 
 class TestRunCli(unittest.TestCase):

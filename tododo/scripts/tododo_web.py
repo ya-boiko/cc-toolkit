@@ -58,6 +58,17 @@ header h1 {
   font-weight: 600;
   color: var(--accent);
 }
+#type-counts {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  margin-left: 16px;
+}
+#type-counts .kw-count { font-weight: 600; }
+#type-counts .kw-count.TODO  { color: var(--accent); }
+#type-counts .kw-count.FIXME { color: var(--red); }
+#type-counts .kw-count.HACK  { color: var(--orange); }
+#type-counts .kw-count.XXX   { color: var(--yellow); }
 header .status {
   font-size: 11px;
   color: var(--text-dim);
@@ -194,6 +205,39 @@ header .status {
   text-decoration: line-through;
   transition: opacity 0.5s;
 }
+.todo-chevron {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 10px;
+  user-select: none;
+  flex-shrink: 0;
+  width: 14px;
+  display: inline-block;
+  text-align: center;
+}
+.todo-chevron.dim {
+  opacity: 0.2;
+  cursor: default;
+  pointer-events: none;
+}
+.todo-context {
+  padding: 2px 8px 4px 60px;
+  overflow-x: auto;
+}
+.todo-context pre {
+  font-size: 12px;
+  font-family: inherit;
+  white-space: pre;
+  background: var(--surface);
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  margin: 0;
+}
+.ctx-ln  { color: var(--text-dim); }
+.ctx-sep { color: var(--text-dim); }
+.ctx-code { color: var(--text); }
+.ctx-todo-ln { color: var(--accent); }
+.ctx-todo-code { color: var(--accent); }
 .empty-state {
   text-align: center;
   padding: 80px 24px;
@@ -227,6 +271,7 @@ header .status {
 
 <header>
   <h1>tododo</h1>
+  <span id="type-counts"></span>
   <span class="status"><span class="dot"></span>polling</span>
 </header>
 
@@ -254,6 +299,8 @@ let todos = [];
 let selected = new Set(); // stores todoKey values
 let prevKeys = new Set();
 let groupMode = 'file'; // 'file' | 'id' | 'flat'
+let expanded = new Set(); // stores expandKey values
+function expandKey(t) { return t.relpath + ':' + t.line_no; }
 
 function todoKey(t) { return t.relpath + ':' + t.line_no + ':' + t.keyword + ':' + t.text; }
 
@@ -272,6 +319,7 @@ function updateTodos(newTodos) {
   selected = new Set([...selected].filter(k => newKeys.has(k)));
   todos = newTodos;
   prevKeys = newKeys;
+  updateTypeCounts();
   render(addedKeys);
 }
 
@@ -348,18 +396,45 @@ function renderFlat(addedKeys) {
 
 function renderItem(t, addedKeys, showFile) {
   const key = todoKey(t);
+  const ekey = expandKey(t);
   const isNew = addedKeys && addedKeys.has(key);
+  const isExp = expanded.has(ekey);
+
+  const ctxLines = t.context_lines || [];
+  const hasCtx = ctxLines.length > 0;
+
   const cls = ['todo-item'];
   if (selected.has(key)) cls.push('selected');
   if (isNew) cls.push('new-item');
-  let html = '<div class="' + cls.join(' ') + '">';
+
+  const chevronCls = 'todo-chevron' + (hasCtx ? '' : ' dim');
+  const chevronChar = isExp ? '&#9660;' : '&#9654;';
+  const escEkey = escAttr(ekey);
+
+  let html = '<div class="' + cls.join(' ') + '" data-expand-key="' + escEkey + '">';
+  html += '<span class="' + chevronCls + '" onclick="toggleExpand(\'' + escEkey + '\')">' + chevronChar + '</span>';
   html += '<input type="checkbox" ' + (selected.has(key) ? 'checked' : '') + ' onchange="toggle(\'' + escAttr(key) + '\')">';
   html += '<span class="todo-id">[' + escHtml(t.display_id) + ']</span>';
-  if (showFile) html += '<span class="todo-line">' + escHtml(t.relpath) + ':' + t.line_no + '</span>';
-  else html += '<span class="todo-line">' + escHtml(t.relpath) + ':' + t.line_no + '</span>';
+  html += '<span class="todo-line">' + escHtml(t.relpath) + ':' + t.line_no + '</span>';
   html += '<span class="todo-keyword ' + t.keyword + '">' + t.keyword + '</span>';
   html += '<span class="todo-text">' + escHtml(t.text) + '</span>';
   html += '</div>';
+
+  // Context block
+  const ctxDisplay = isExp ? 'block' : 'none';
+  html += '<div class="todo-context" data-expand-key="' + escEkey + '" style="display:' + ctxDisplay + '">';
+  if (hasCtx) {
+    html += '<pre>';
+    for (const [ln, lt] of ctxLines) {
+      const isTodoLine = ln === t.line_no;
+      html += '<span class="ctx-ln' + (isTodoLine ? ' ctx-todo-ln' : '') + '">' + String(ln).padStart(4) + '</span>';
+      html += '<span class="ctx-sep">:</span>';
+      html += '<span class="ctx-code' + (isTodoLine ? ' ctx-todo-code' : '') + '">' + escHtml(lt) + '</span>\n';
+    }
+    html += '</pre>';
+  }
+  html += '</div>';
+
   return html;
 }
 
@@ -376,6 +451,25 @@ function toggle(key) {
   render();
 }
 
+function toggleExpand(ekey) {
+  if (expanded.has(ekey)) expanded.delete(ekey);
+  else expanded.add(ekey);
+
+  // Update DOM directly without full re-render
+  const chevronChar = expanded.has(ekey) ? '&#9660;' : '&#9654;';
+  const display = expanded.has(ekey) ? 'block' : 'none';
+
+  for (const el of document.querySelectorAll('[data-expand-key]')) {
+    if (el.dataset.expandKey !== ekey) continue;
+    if (el.classList.contains('todo-item')) {
+      const ch = el.querySelector('.todo-chevron');
+      if (ch) ch.innerHTML = chevronChar;
+    } else if (el.classList.contains('todo-context')) {
+      el.style.display = display;
+    }
+  }
+}
+
 function toggleGroupSelect(groupVal, mode) {
   const items = mode === 'file'
     ? todos.filter(t => t.relpath === groupVal)
@@ -387,6 +481,17 @@ function toggleGroupSelect(groupVal, mode) {
     else selected.add(k);
   }
   render();
+}
+
+function updateTypeCounts() {
+  const counts = {};
+  for (const t of todos) counts[t.keyword] = (counts[t.keyword] || 0) + 1;
+  const order = ['TODO', 'FIXME', 'HACK', 'XXX'];
+  const el = document.getElementById('type-counts');
+  el.innerHTML = order
+    .filter(k => counts[k])
+    .map(k => '<span class="kw-count ' + k + '">' + k + ' ' + counts[k] + '</span>')
+    .join('');
 }
 
 function updateToolbar() {
@@ -452,7 +557,7 @@ class TodoHandler(BaseHTTPRequestHandler):
     def _serve_todos(self):
         try:
             result = subprocess.run(
-                [sys.executable, SCANNER_PATH, "--json", "--context", "0", self.root],
+                [sys.executable, SCANNER_PATH, "--json", "--context", "3", "--after", "5", self.root],
                 capture_output=True,
                 text=True,
                 timeout=30,

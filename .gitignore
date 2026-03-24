@@ -22,4 +22,5 @@ build/
 # Claude code
 docs/
 CLAUDE.md
-.claude
+.claude.superpowers/
+.superpowers

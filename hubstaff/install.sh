@@ -20,9 +20,17 @@ rm -f "${SKILLS_DIR}/hubstaff"
 ln -s "${SCRIPT_DIR}/skills/hubstaff" "${SKILLS_DIR}/hubstaff"
 echo "  skill   → ${SKILLS_DIR}/hubstaff"
 
+rm -f "${COMMANDS_DIR}/hubstaff:interface.md"
+ln -s "${SCRIPT_DIR}/commands/hubstaff:interface.md" "${COMMANDS_DIR}/hubstaff:interface.md"
+echo "  command → ${COMMANDS_DIR}/hubstaff:interface.md"
+
 rm -f "${SCRIPTS_DIR}/hubstaff_cli.py"
 ln -s "${SCRIPT_DIR}/scripts/hubstaff_cli.py" "${SCRIPTS_DIR}/hubstaff_cli.py"
 echo "  script  → ${SCRIPTS_DIR}/hubstaff_cli.py"
+
+rm -f "${SCRIPTS_DIR}/hubstaff_web.py"
+ln -s "${SCRIPT_DIR}/scripts/hubstaff_web.py" "${SCRIPTS_DIR}/hubstaff_web.py"
+echo "  script  → ${SCRIPTS_DIR}/hubstaff_web.py"
 
 # Detect Hubstaff CLI binary
 echo ""

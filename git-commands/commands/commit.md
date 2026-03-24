@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*)
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), AskUserQuestion
 argument-hint: [message] | --no-verify | --amend
 description: Create well-formatted commits with conventional commit format
 model: inherit
@@ -16,35 +16,36 @@ Create well-formatted commit: $ARGUMENTS
 - Staged changes: !`git diff --cached --stat`
 - Unstaged changes: !`git diff --stat`
 - Recent commits: !`git log --oneline -5`
+- Workspace mode: !`dir=$PWD; while true; do if [ -f "$dir/.workspace.md" ]; then grep -m1 '^mode:' "$dir/.workspace.md" | sed 's/mode:[[:space:]]*//'; break; fi; if [ "$dir" = "$HOME" ] || [ "$dir" = "/" ]; then echo "personal"; break; fi; dir=$(dirname "$dir"); done`
 
 ## What This Command Does
 
-1. Unless specified with `--no-verify`, automatically runs pre-commit checks:
+1. **If workspace mode is `work`**: ask the user for the Jira task number (e.g. `PRJ-1234`).
+2. Unless specified with `--no-verify`, automatically runs pre-commit checks:
    - `pnpm lint` to ensure code quality
    - `pnpm build` to verify the build succeeds
    - `pnpm generate:docs` to update documentation
-2. Checks which files are staged with `git status`
-3. If 0 files are staged, automatically adds all modified and new files with `git add`
-4. Performs a `git diff` to understand what changes are being committed
-5. Analyzes the diff to determine if multiple distinct logical changes are present
-6. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
-7. For each commit (or the single commit if not split), creates a commit message using conventional commit format
+3. Checks which files are staged with `git status`
+4. If 0 files are staged, automatically adds all modified and new files with `git add`
+5. Performs a `git diff` to understand what changes are being committed
+6. Analyzes the diff to determine if multiple distinct logical changes are present
+7. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
+8. For each commit (or the single commit if not split), creates a commit message using the format below
+
+## Commit Message Format
+
+- **work mode**: `[PRJ-1234] feat: description`
+- **personal mode**: `feat: description`
+
+Type is one of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`.
+Description: present tense, imperative mood. Max 72 characters total.
 
 ## Best Practices for Commits
 
 - **Verify before committing**: Ensure code is linted, builds correctly, and documentation is updated
 - **Atomic commits**: Each commit should contain related changes that serve a single purpose
 - **Split large changes**: If changes touch multiple concerns, split them into separate commits
-- **Conventional commit format**: Use the format `<type>: <description>` where type is one of:
-  - `feat`: A new feature
-  - `fix`: A bug fix
-  - `docs`: Documentation changes
-  - `style`: Code style changes (formatting, etc)
-  - `refactor`: Code changes that neither fix bugs nor add features
-  - `perf`: Performance improvements
-  - `test`: Adding or fixing tests
-  - `chore`: Changes to the build process, tools, etc.
-- **Present tense, imperative mood**: Write commit messages as commands (e.g., "add feature" not "added feature")
+- **Separate low-cognitive from high-cognitive changes**: Rename/lint/docs/dead code removal in separate commits from business logic — helps reviewers focus
 - **Concise first line**: Keep the first line under 72 characters
 
 ## Guidelines for Splitting Commits
@@ -59,33 +60,20 @@ When analyzing the diff, consider splitting commits based on these criteria:
 
 ## Examples
 
-Good commit messages:
-- ✨ feat: add user authentication system
-- 🐛 fix: resolve memory leak in rendering process
-- 📝 docs: update API documentation with new endpoints
-- ♻️ refactor: simplify error handling logic in parser
-- 🚨 fix: resolve linter warnings in component files
-- 🧑‍💻 chore: improve developer tooling setup process
-- 👔 feat: implement business logic for transaction validation
-- 🩹 fix: address minor styling inconsistency in header
-- 🚑️ fix: patch critical security vulnerability in auth flow
-- 🎨 style: reorganize component structure for better readability
-- 🔥 fix: remove deprecated legacy code
-- 🦺 feat: add input validation for user registration form
-- 💚 fix: resolve failing CI pipeline tests
-- 📈 feat: implement analytics tracking for user engagement
-- 🔒️ fix: strengthen authentication password requirements
-- ♿️ feat: improve form accessibility for screen readers
+Good commit messages (work mode):
+- `[PRJ-1234] feat: add user authentication system`
+- `[PRJ-1234] fix: resolve memory leak in rendering process`
+- `[PRJ-1234] refactor: simplify error handling logic in parser`
 
-Example of splitting commits:
-- First commit: ✨ feat: add new solc version type definitions
-- Second commit: 📝 docs: update documentation for new solc versions
-- Third commit: 🔧 chore: update package.json dependencies
-- Fourth commit: 🏷️ feat: add type definitions for new API endpoints
-- Fifth commit: 🧵 feat: improve concurrency handling in worker threads
-- Sixth commit: 🚨 fix: resolve linting issues in new code
-- Seventh commit: ✅ test: add unit tests for new solc version features
-- Eighth commit: 🔒️ fix: update dependencies with security vulnerabilities
+Good commit messages (personal mode):
+- `feat: add user authentication system`
+- `fix: resolve memory leak in rendering process`
+- `docs: update API documentation with new endpoints`
+
+Example of splitting commits (low-cognitive first, then business logic):
+- First commit: `[PRJ-1234] refactor: rename UserService methods to snake_case`
+- Second commit: `[PRJ-1234] fix: resolve linting issues in new code`
+- Third commit: `[PRJ-1234] feat: add voice sample generation for speakers`
 
 ## Command Options
 

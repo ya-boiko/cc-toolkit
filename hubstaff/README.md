@@ -86,6 +86,50 @@ Stops the tracker.
 
 Resumes the last tracked task.
 
+#### `summary`
+
+Generates a daily markdown report with per-task time breakdown and AI-synthesized descriptions of work done (from Claude Code session history). Saves to `~/.hubstaff-daily/YYYY-MM-DD.md`.
+
+Also triggered automatically after `stop`.
+
+```
+## Proko — 5:23:00
+
+### migrate data — 2:10:00
+Migrated transcription records from DB replica to knowledgebase.
+
+### add RBAC — 3:13:00
+Implemented role-based access control for authorized users.
+```
+
+## Web Dashboard
+
+```
+/hubstaff:interface [--port PORT]
+```
+
+Opens a web UI for browsing daily reports. Calendar sidebar with highlighted dates on the left, report content on the right. Default port: 8788.
+
+## Status Line
+
+Shows the current Hubstaff tracking status in the Claude Code status bar.
+
+**When tracking:** `⏱ Proko > Task name (2:13:22)`
+**When not tracking:** `⏸ not tracking`
+
+To enable, add to `~/.claude/settings.json` (after running `./install.sh`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/hubstaff/hubstaff_cli.py statusline"
+  }
+}
+```
+
+Then open `/hooks` in Claude Code to reload the settings.
+
 ## Skill `hubstaff`
 
 Auto-triggers when the message contains one of the keywords with intent to interact with the tracker.

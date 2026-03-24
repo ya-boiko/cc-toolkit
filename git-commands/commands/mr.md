@@ -9,6 +9,10 @@ model: inherit
 
 Create a merge request in GitLab using a previously generated PR description from `prs/`.
 
+## Current State
+
+- Workspace mode: !`dir=$PWD; while true; do if [ -f "$dir/.workspace.md" ]; then grep -m1 '^mode:' "$dir/.workspace.md" | sed 's/mode:[[:space:]]*//'; break; fi; if [ "$dir" = "$HOME" ] || [ "$dir" = "/" ]; then echo "personal"; break; fi; dir=$(dirname "$dir"); done`
+
 ## Steps
 
 1. Get the current branch: `git branch --show-current`
@@ -18,14 +22,27 @@ Create a merge request in GitLab using a previously generated PR description fro
 5. **If multiple files** — show a numbered list with: filename, target branch (parsed from `__to__<target>.md`), and file modification date (`ls -l`). Ask the user to pick one.
 6. Read the chosen file. The first line is the MR title, the rest is the description body.
 7. Parse the target branch from the filename: `<source>__to__<target>.md` → target is after `__to__` and before `.md`.
-8. Push the current branch: `git push -u origin <current-branch>`
-9. Create the MR:
+8. Generate the squash commit message from the MR title and content (see format below).
+9. Push the current branch: `git push -u origin <current-branch>`
+10. Create the MR:
 
 ```bash
-glab mr create --title "<title>" --description "<description>" --target-branch <target> --no-editor --push
+glab mr create --title "<title>" --description "<description>" --squash-message "<squash-message>" --target-branch <target> --no-editor --push
 ```
 
-10. Show the MR URL from glab output.
+11. Show the MR URL from glab output.
+
+## Squash Commit Message Format
+
+- **work**: `[PRJ-1234] feat: add Easter egg to the header`
+- **personal**: `feat: add Easter egg to the header`
+
+Rules:
+- Keep the `[TASK-NUMBER]` prefix from the title if present (work mode)
+- Choose the type (`feat`, `fix`, `refactor`, `docs`, `chore`, `test`) from the PR content
+- First line (subject): lowercase, imperative mood, max 72 characters
+- Optional body: bullet points with key details, separated from subject by a blank line
+- Descriptive enough to understand the change without reading the PR
 
 ## Important
 

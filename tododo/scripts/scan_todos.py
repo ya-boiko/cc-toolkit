@@ -9,6 +9,7 @@
 #   For cloning: git submodule update --init
 
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -156,7 +157,64 @@ def should_skip_path(filepath: str) -> bool:
     return filename in SKIP_FILES
 
 
-def walk_files(root: str):
+def load_todoignore(root: str) -> list[tuple[str, list[str]]]:
+    """Walk upward from root collecting .todoignore files.
+
+    Returns list of (directory, patterns) from innermost to outermost.
+    Patterns follow gitignore syntax: one per line, # for comments.
+    """
+    rules = []
+    current = os.path.abspath(root)
+    while True:
+        ignore_file = os.path.join(current, ".todoignore")
+        if os.path.isfile(ignore_file):
+            patterns = []
+            try:
+                with open(ignore_file) as f:
+                    for line in f:
+                        stripped = line.strip()
+                        if stripped and not stripped.startswith("#"):
+                            patterns.append(stripped)
+            except OSError:
+                pass
+            if patterns:
+                rules.append((current, patterns))
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return rules
+
+
+def should_skip_by_todoignore(filepath: str, rules: list[tuple[str, list[str]]]) -> bool:
+    """Check if a file matches any .todoignore pattern."""
+    if not rules:
+        return False
+    filename = os.path.basename(filepath)
+    for ignore_dir, patterns in rules:
+        try:
+            relpath = os.path.relpath(filepath, ignore_dir).replace(os.sep, "/")
+        except ValueError:
+            continue
+        for pattern in patterns:
+            pat = pattern.rstrip("/")
+            if not pat:
+                continue
+            # Match against full relative path
+            if fnmatch.fnmatch(relpath, pat):
+                return True
+            # Pattern without slash: also match against filename
+            if "/" not in pat and fnmatch.fnmatch(filename, pat):
+                return True
+            # Handle ** by simplifying to a single wildcard level
+            if "**" in pat:
+                simple = pat.replace("**/", "").replace("**", "*")
+                if fnmatch.fnmatch(relpath, simple) or fnmatch.fnmatch(filename, simple):
+                    return True
+    return False
+
+
+def walk_files(root: str, todoignore_rules: list[tuple[str, list[str]]] | None = None):
     """Yield file paths, skipping ignored directories and binary files."""
     git_files = get_git_tracked_files(root)
 
@@ -167,6 +225,7 @@ def walk_files(root: str):
                 not should_skip_file(filepath)
                 and not should_skip_path(filepath)
                 and os.path.isfile(filepath)
+                and not should_skip_by_todoignore(filepath, todoignore_rules or [])
             ):
                 yield filepath
     else:
@@ -178,16 +237,21 @@ def walk_files(root: str):
 
             for filename in sorted(filenames):
                 filepath = os.path.join(dirpath, filename)
-                if not should_skip_file(filepath):
+                if not should_skip_file(filepath) and not should_skip_by_todoignore(filepath, todoignore_rules or []):
                     yield filepath
 
 
-def scan_file(filepath: str, root: str, context: int = 0) -> list[dict]:
+def scan_file(filepath: str, root: str, context: int = 0, after: int | None = None) -> list[dict]:
     """Scan a single file for TODO comments.
 
     Returns list of dicts with keys: relpath, line_no, keyword, text,
     and optionally context_lines (list of (line_no, line_text) pairs).
+
+    context: lines before the TODO (and after, if after is None)
+    after: lines after the TODO (overrides context for the after side)
     """
+    before = context
+    after_n = after if after is not None else context
     results = []
     try:
         with open(filepath, encoding="utf-8", errors="replace") as f:
@@ -209,9 +273,9 @@ def scan_file(filepath: str, root: str, context: int = 0) -> list[dict]:
                 }
                 if explicit_id_str is not None:
                     entry["explicit_id"] = int(explicit_id_str)
-                if context > 0:
-                    start = max(0, line_no_0 - context)
-                    end = min(len(lines), line_no_0 + context + 1)
+                if before > 0 or after_n > 0:
+                    start = max(0, line_no_0 - before)
+                    end = min(len(lines), line_no_0 + after_n + 1)
                     ctx = []
                     for i in range(start, end):
                         ctx.append((i + 1, lines[i].rstrip("\n")))
@@ -233,6 +297,13 @@ def main():
         help="Show N lines of context around each TODO (default: 2)",
     )
     parser.add_argument(
+        "--after",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Show N lines after each TODO, overriding --context for the after side",
+    )
+    parser.add_argument(
         "--group",
         action="store_true",
         help="Group output by file with file headers",
@@ -250,9 +321,11 @@ def main():
         print(f"Error: '{root}' is not a directory", file=sys.stderr)
         sys.exit(1)
 
+    todoignore_rules = load_todoignore(root)
+
     todos = []
-    for filepath in walk_files(root):
-        todos.extend(scan_file(filepath, root, context=args.context))
+    for filepath in walk_files(root, todoignore_rules):
+        todos.extend(scan_file(filepath, root, context=args.context, after=args.after))
 
     if not todos:
         print("No TODO comments found.")
@@ -290,6 +363,8 @@ def main():
             }
             if "explicit_id" in todo:
                 entry["explicit_id"] = todo["explicit_id"]
+            if "context_lines" in todo:
+                entry["context_lines"] = todo["context_lines"]
             out.append(entry)
         json.dump(out, sys.stdout, ensure_ascii=False)
         print()

@@ -28,6 +28,8 @@ make install          # install all plugins
 make install-hubstaff # install a specific plugin
 ```
 
+Optional: merge `settings.example.json` into `~/.claude/settings.json` for Hubstaff status line and multi-project directory detection hook.
+
 ---
 
 ## jira-tasks
@@ -82,7 +84,7 @@ cd hubstaff && ./install.sh
 ### Command `/hubstaff`
 
 ```
-/hubstaff [status|projects|tasks|start|stop|resume]
+/hubstaff [status|projects|tasks|start|stop|resume|summary]
 ```
 
 | Subcommand | Action |
@@ -91,10 +93,15 @@ cd hubstaff && ./install.sh
 | `projects` | List all projects |
 | `tasks [project_id]` | List project tasks (omit ID to use active project) |
 | `start [task_id]` | Start tracking a task (omit ID to pick from list) |
-| `stop` | Stop the tracker |
+| `stop` | Stop the tracker (auto-generates daily summary) |
 | `resume` | Resume the tracker |
+| `summary` | Generate daily report to `~/.hubstaff-daily/YYYY-MM-DD.md` |
 
 Internally uses a Python wrapper over `HubstaffCLI.bin.x86_64` — parses JSON and returns clean text output.
+
+### Command `/hubstaff:interface`
+
+Opens a web dashboard for browsing daily reports — calendar sidebar with highlighted dates, report content on the right.
 
 ### Skill `hubstaff`
 
@@ -117,7 +124,9 @@ cd git-commands && ./install.sh
 
 ### Command `/commit`
 
-Creates a git commit in conventional commits format.
+Creates a git commit. Format depends on [workspace mode](git-commands/README.md#workspace-mode):
+- `work`: `[PRJ-1234] feat: description` — asks for Jira task number
+- `personal`: `feat: description`
 
 ```
 /commit [message] | --no-verify | --amend
@@ -130,16 +139,15 @@ Creates a git commit in conventional commits format.
 
 ### Command `/generate-pr`
 
-Generates a Pull Request description from the current branch.
+Generates a Pull Request description from the current branch. Format depends on [workspace mode](git-commands/README.md#workspace-mode):
+- `work`: title with task number + Jira link in description
+- `personal`: plain title + short bullet description
 
 ```
 /generate-pr [target-branch]  # default: master
 ```
 
-Analyzes commits and diff, saves output to `prs/<source>__to__<target>.md` with:
-- Title (max 72 characters)
-- **Summary** — the purpose of the PR
-- **Changes** — grouped list of changes by category
+Analyzes commits and diff, saves output to `prs/<source>__to__<target>.md`.
 
 ### Command `/mr`
 
@@ -154,6 +162,16 @@ Creates a GitLab Merge Request via `glab` using a description file from `prs/`.
 3. Parses title and description from the file
 4. Pushes the current branch
 5. Creates the MR via `glab mr create`
+
+### Command `/cd`
+
+Switches the working directory for the current session.
+
+```
+/cd [directory]
+```
+
+Without arguments — lists subdirectories and asks which one to use. Useful with worktree-based workflows. See [git-commands README](git-commands/README.md#cd) for a companion SessionStart hook that auto-detects multi-project directories.
 
 ---
 
@@ -190,7 +208,40 @@ cd tododo && ./install.sh
 
 Opens a web UI for visual TODO selection and clipboard copy.
 
+### `.todoignore`
+
+Place a `.todoignore` file in your project root to exclude files from scanning — same syntax as `.gitignore`. Searched upward from the project root, so a parent-directory `.todoignore` applies to multiple projects.
+
 ### Skill `tododo`
 
 Auto-triggers when the user mentions working with TODO comments:
 > "show TODOs", "find all TODOs", "run TODO #3", "implement a TODO"
+
+---
+
+## Recommendations
+
+### Global CLAUDE.md
+
+Add to `~/.claude/CLAUDE.md` so Claude Code follows these rules in all projects:
+
+```markdown
+## Git Worktrees
+
+[Worktrunk](https://github.com/max-sixty/worktrunk) (`wt`) is a CLI tool for managing git worktrees — isolated working copies of a repo that share the same `.git` directory. Always use `wt` instead of `git worktree` directly.
+
+```bash
+wt new <branch-name>    # create a new worktree
+wt list                 # list worktrees
+wt remove <name>        # remove a worktree
+```
+```
+
+### settings.json
+
+Merge `settings.example.json` into `~/.claude/settings.json`:
+
+- **statusLine** — Hubstaff tracking status in the Claude Code status bar
+- **SessionStart hook** — auto-detects multi-project directories and asks which one to use
+- **Stop hook** — desktop notification when Claude finishes work (`notify-send`, Linux/Fedora)
+- **Notification hook** — urgent desktop notification when Claude needs your attention (permissions, input)
