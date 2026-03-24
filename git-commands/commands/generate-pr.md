@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(mkdir:*), Bash(ls:*), Bash(bash:*), Write, AskUserQuestion
+allowed-tools: Bash(git log:*), Bash(git diff:*), Bash(git branch:*), Bash(mkdir:*), Bash(ls:*), Bash(bash:*), Bash(python3:*), Write, AskUserQuestion
 argument-hint: [target-branch] (default: master)
 description: Generate PR title and description from current branch to target branch
 model: inherit
@@ -17,7 +17,7 @@ Target branch: $ARGUMENTS (default: master)
 - Target branch: master
 - Commits in branch: !`git log master..HEAD --oneline`
 - Files changed: !`git diff master..HEAD --stat | tail -20`
-- Workspace mode: !`dir=$PWD; while true; do if [ -f "$dir/.workspace.md" ]; then grep -m1 '^mode:' "$dir/.workspace.md" | sed 's/mode:[[:space:]]*//'; break; fi; if [ "$dir" = "$HOME" ] || [ "$dir" = "/" ]; then echo "personal"; break; fi; dir=$(dirname "$dir"); done`
+- Workspace mode: !`python3 -c "exec('import os,sys\nd=os.getcwd()\nh=os.path.expanduser(chr(126))\nwhile True:\n f=os.path.join(d,\".workspace.md\")\n if os.path.isfile(f):\n  for line in open(f):\n   if line.startswith(\"mode:\"):\n    print(line.split(\":\",1)[1].strip());sys.exit()\n  break\n if d==h or d==\"/\":break\n d=os.path.dirname(d)\nprint(\"personal\")')"`
 
 ## Instructions
 
