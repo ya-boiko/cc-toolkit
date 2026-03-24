@@ -27,6 +27,8 @@ mode: work
 
 If the file is not found, defaults to `personal`. Add `.workspace.md` to your global `.gitignore`.
 
+Use `/workspace-init` to create this file interactively.
+
 ---
 
 ## Commands
@@ -176,6 +178,18 @@ chore: bump version to v1.2.0
 ```
 chore: bump version to v1.2.0
 ```
+
+---
+
+### `/workspace-init`
+
+Creates a `.workspace.md` file in the current directory to set the workspace mode.
+
+```
+/workspace-init [work|personal]
+```
+
+Without an argument — asks interactively. With an argument — creates the file immediately. If `.workspace.md` already exists, asks for confirmation before overwriting.
 
 ---
 
