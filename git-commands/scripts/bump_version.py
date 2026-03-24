@@ -24,6 +24,9 @@ def bump_package_json(path: Path, new_version: str) -> None:
 
 
 def bump_toml(path: Path, new_version: str) -> None:
+    # NOTE: Replaces ALL `version = "..."` occurrences in the file, including
+    # any version constraints in dependency tables. Projects with pinned
+    # self-references in dependencies should use a dedicated TOML parser instead.
     text = path.read_text(encoding="utf-8")
     # Match `version = "x.y.z"` or `version = "x.y"` at the start of a line
     pattern = re.compile(r'^(version\s*=\s*")[^"]*(")', re.MULTILINE)

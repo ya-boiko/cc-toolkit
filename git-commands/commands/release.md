@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(git describe:*), Bash(git tag:*), Bash(git remote:*), Bash(git push:*), Bash(git reset:*), Bash(gh:*), Bash(glab:*), Bash(python3:*), Bash(find:*), Bash(mktemp:*), Bash(rm:*), AskUserQuestion
+allowed-tools: Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(git describe:*), Bash(git tag:*), Bash(git remote:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(git reset:*), Bash(gh:*), Bash(glab:*), Bash(python3:*), Bash(find:*), Bash(mktemp:*), Bash(rm:*), AskUserQuestion
 argument-hint: [patch|minor|major]
 description: Create a release — version bump, changelog, tag, and publish to GitHub or GitLab
 model: inherit
@@ -129,7 +129,7 @@ chore: bump version to <version>
 
 Stage version files and commit:
 ```bash
-git add package.json pyproject.toml Cargo.toml   # only files that exist
+git add <only the version files that were actually found and updated in Step 4>
 git commit -m "<message>"
 ```
 
