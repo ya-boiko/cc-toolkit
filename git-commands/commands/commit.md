@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), AskUserQuestion
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(python3:*), AskUserQuestion
 argument-hint: [message] | --no-verify | --amend
 description: Create well-formatted commits with conventional commit format
 model: inherit
@@ -16,7 +16,7 @@ Create well-formatted commit: $ARGUMENTS
 - Staged changes: !`git diff --cached --stat`
 - Unstaged changes: !`git diff --stat`
 - Recent commits: !`git log --oneline -5`
-- Workspace mode: !`dir=$PWD; while true; do if [ -f "$dir/.workspace.md" ]; then grep -m1 '^mode:' "$dir/.workspace.md" | sed 's/mode:[[:space:]]*//'; break; fi; if [ "$dir" = "$HOME" ] || [ "$dir" = "/" ]; then echo "personal"; break; fi; dir=$(dirname "$dir"); done`
+- Workspace mode: !`python3 -c "exec('import os,sys\nd=os.getcwd()\nh=os.path.expanduser(chr(126))\nwhile True:\n f=os.path.join(d,\".workspace.md\")\n if os.path.isfile(f):\n  for line in open(f):\n   if line.startswith(\"mode:\"):\n    print(line.split(\":\",1)[1].strip());sys.exit()\n  break\n if d==h or d==\"/\":break\n d=os.path.dirname(d)\nprint(\"personal\")')"`
 
 ## What This Command Does
 
