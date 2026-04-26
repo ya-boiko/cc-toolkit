@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yougile-cli"
+version = "0.1.0"
+description = "YouGile API CLI used by the yougile Claude Code plugin"
+requires-python = ">=3.11"
+dependencies = [
+  "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "responses>=0.25",
+]
+
+[tool.setuptools]
+package-dir = {"" = "scripts"}
+py-modules = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts"]

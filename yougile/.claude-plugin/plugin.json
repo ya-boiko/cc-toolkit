@@ -1,0 +1,6 @@
+{
+  "name": "yougile",
+  "version": "0.1.0",
+  "description": "Manage YouGile tasks from Claude Code via the REST API v2",
+  "author": { "name": "Vlad Boiko" }
+}
