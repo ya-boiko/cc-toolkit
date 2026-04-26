@@ -227,3 +227,18 @@ class YougileClient:
     def messages_create(self, chat_id: str, text: str) -> dict:
         return self._request("POST", f"/api-v2/chats/{chat_id}/messages",
                              json={"text": text})
+
+    # ── stickers ─────────────────────────────────────────────────────
+    def string_stickers_list(self, *, limit: int = 100, offset: int = 0) -> dict:
+        return self._request("GET", "/api-v2/string-stickers",
+                             params={"limit": limit, "offset": offset})
+
+    def sprint_stickers_list(self, *, limit: int = 100, offset: int = 0) -> dict:
+        return self._request("GET", "/api-v2/sprint-stickers",
+                             params={"limit": limit, "offset": offset})
+
+    def string_sticker_get(self, sticker_id: str) -> dict:
+        return self._request("GET", f"/api-v2/string-stickers/{sticker_id}")
+
+    def sprint_sticker_get(self, sticker_id: str) -> dict:
+        return self._request("GET", f"/api-v2/sprint-stickers/{sticker_id}")

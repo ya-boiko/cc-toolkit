@@ -159,7 +159,15 @@ def _build_parser() -> argparse.ArgumentParser:
     cm_add.add_argument("task_id")
     cm_add.add_argument("--text", required=True)
 
-    sub.add_parser("stickers", help="(added later)")
+    # stickers
+    stick = sub.add_parser("stickers", help="stickers (read-only)")
+    stick_sub = stick.add_subparsers(dest="action", required=True)
+    s_list = stick_sub.add_parser("list")
+    s_list.add_argument("--type", choices=["string", "sprint"])
+    s_states = stick_sub.add_parser("states")
+    s_states.add_argument("sticker_id")
+    s_states.add_argument("--type", choices=["string", "sprint"], default="string")
+
     return p
 
 
@@ -251,6 +259,9 @@ def _dispatch(args) -> int:
     if args.cmd == "comments":
         from yougile_commands_comments import cmd_comments_add, cmd_comments_list
         return {"list": cmd_comments_list, "add": cmd_comments_add}[args.action](args)
+    if args.cmd == "stickers":
+        from yougile_commands_stickers import cmd_stickers_list, cmd_stickers_states
+        return {"list": cmd_stickers_list, "states": cmd_stickers_states}[args.action](args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 
