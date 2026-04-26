@@ -107,3 +107,50 @@ class YougileClient:
         if 500 <= sc < 600:
             raise ServerError(sc, code, message)
         raise YougileError(sc, code, message)
+
+    # ── auth ─────────────────────────────────────────────────────────
+    def companies_list(self, login: str, password: str, name: str | None = None) -> list[dict]:
+        body: dict = {"login": login, "password": password}
+        if name:
+            body["name"] = name
+        url = f"{self.base_url.rstrip('/')}/api-v2/auth/companies"
+        resp = requests.post(
+            url,
+            headers={"Content-Type": "application/json"},
+            data=_json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            timeout=self.timeout,
+        )
+        result = self._handle(resp)
+        if isinstance(result, dict):
+            return result.get("content", [])
+        return result or []
+
+    def keys_list(self, login: str, password: str, company_id: str) -> list[dict]:
+        url = f"{self.base_url.rstrip('/')}/api-v2/auth/keys/get"
+        resp = requests.post(
+            url,
+            headers={"Content-Type": "application/json"},
+            data=_json.dumps(
+                {"login": login, "password": password, "companyId": company_id},
+                ensure_ascii=False,
+            ).encode("utf-8"),
+            timeout=self.timeout,
+        )
+        return self._handle(resp) or []
+
+    def keys_create(self, login: str, password: str, company_id: str) -> str:
+        url = f"{self.base_url.rstrip('/')}/api-v2/auth/keys"
+        resp = requests.post(
+            url,
+            headers={"Content-Type": "application/json"},
+            data=_json.dumps(
+                {"login": login, "password": password, "companyId": company_id},
+                ensure_ascii=False,
+            ).encode("utf-8"),
+            timeout=self.timeout,
+        )
+        result = self._handle(resp)
+        return result["key"]
+
+    def companies_get(self, company_id: str) -> dict:
+        return self._request("GET", f"/api-v2/companies/{company_id}")
