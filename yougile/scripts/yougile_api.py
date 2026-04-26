@@ -194,3 +194,27 @@ class YougileClient:
 
     def tasks_update(self, task_id: str, body: dict) -> dict:
         return self._request("PUT", f"/api-v2/tasks/{task_id}", json=body)
+
+    # ── projects/boards/columns/users (lists) ────────────────────────
+    def projects_list(self, *, limit: int = 100, offset: int = 0) -> dict:
+        return self._request("GET", "/api-v2/projects",
+                             params={"limit": limit, "offset": offset})
+
+    def boards_list(self, *, project_id: str | None = None,
+                    limit: int = 100, offset: int = 0) -> dict:
+        params: dict = {"limit": limit, "offset": offset}
+        if project_id:
+            params["projectId"] = project_id
+        return self._request("GET", "/api-v2/boards", params=params)
+
+    def columns_list(self, *, board_id: str,
+                     limit: int = 100, offset: int = 0) -> dict:
+        return self._request("GET", "/api-v2/columns",
+                             params={"boardId": board_id, "limit": limit, "offset": offset})
+
+    def users_list(self, *, query: str | None = None,
+                   limit: int = 100, offset: int = 0) -> dict:
+        params: dict = {"limit": limit, "offset": offset}
+        if query:
+            params["filterQuery"] = query
+        return self._request("GET", "/api-v2/users", params=params)

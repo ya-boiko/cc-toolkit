@@ -122,10 +122,33 @@ def _build_parser() -> argparse.ArgumentParser:
     t_done = tasks_sub.add_parser("done")
     t_done.add_argument("task_id")
 
-    sub.add_parser("projects", help="(added later)")
-    sub.add_parser("boards", help="(added later)")
-    sub.add_parser("columns", help="(added later)")
-    sub.add_parser("users", help="(added later)")
+    # projects
+    proj = sub.add_parser("projects", help="projects (read-only)")
+    proj_sub = proj.add_subparsers(dest="action", required=True)
+    proj_sub.add_parser("list")
+    proj_get = proj_sub.add_parser("get")
+    proj_get.add_argument("project_id")
+
+    # boards
+    boards = sub.add_parser("boards", help="boards (read-only)")
+    boards_sub = boards.add_subparsers(dest="action", required=True)
+    b_list = boards_sub.add_parser("list")
+    b_list.add_argument("--project")
+    b_get = boards_sub.add_parser("get")
+    b_get.add_argument("board_id")
+
+    # columns
+    cols = sub.add_parser("columns", help="columns (read-only)")
+    cols_sub = cols.add_subparsers(dest="action", required=True)
+    c_list = cols_sub.add_parser("list")
+    c_list.add_argument("--board", required=True)
+
+    # users
+    users = sub.add_parser("users", help="users (read-only)")
+    users_sub = users.add_subparsers(dest="action", required=True)
+    u_list = users_sub.add_parser("list")
+    u_list.add_argument("--query")
+
     sub.add_parser("comments", help="(added later)")
     sub.add_parser("stickers", help="(added later)")
     return p
@@ -204,6 +227,18 @@ def _dispatch(args) -> int:
             "add-subtask":     cmd_tasks_add_subtask,
             "remove-subtask":  cmd_tasks_remove_subtask,
         }[args.action](args)
+    if args.cmd == "projects":
+        from yougile_commands_helpers import cmd_projects_get, cmd_projects_list
+        return {"list": cmd_projects_list, "get": cmd_projects_get}[args.action](args)
+    if args.cmd == "boards":
+        from yougile_commands_helpers import cmd_boards_get, cmd_boards_list
+        return {"list": cmd_boards_list, "get": cmd_boards_get}[args.action](args)
+    if args.cmd == "columns":
+        from yougile_commands_helpers import cmd_columns_list
+        return cmd_columns_list(args)
+    if args.cmd == "users":
+        from yougile_commands_helpers import cmd_users_list
+        return cmd_users_list(args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 
