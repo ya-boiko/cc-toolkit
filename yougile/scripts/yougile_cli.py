@@ -119,6 +119,18 @@ def _dispatch(args) -> int:
     if args.cmd == "bootstrap":
         from yougile_commands_auth import cmd_bootstrap
         return cmd_bootstrap(args)
+    if args.cmd == "context":
+        from yougile_commands_context import (
+            cmd_context_clear,
+            cmd_context_set,
+            cmd_context_show,
+        )
+        if args.action == "show":
+            return cmd_context_show(args)
+        if args.action == "set":
+            return cmd_context_set(args)
+        if args.action == "clear":
+            return cmd_context_clear(args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 

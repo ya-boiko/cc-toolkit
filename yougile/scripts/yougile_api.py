@@ -154,3 +154,13 @@ class YougileClient:
 
     def companies_get(self, company_id: str) -> dict:
         return self._request("GET", f"/api-v2/companies/{company_id}")
+
+    # ── projects/boards/columns (single) ─────────────────────────────
+    def projects_get(self, project_id: str) -> dict:
+        return self._request("GET", f"/api-v2/projects/{project_id}")
+
+    def boards_get(self, board_id: str) -> dict:
+        return self._request("GET", f"/api-v2/boards/{board_id}")
+
+    def columns_get(self, column_id: str) -> dict:
+        return self._request("GET", f"/api-v2/columns/{column_id}")
