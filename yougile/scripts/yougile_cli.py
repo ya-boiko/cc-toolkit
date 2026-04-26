@@ -85,6 +85,31 @@ def _build_parser() -> argparse.ArgumentParser:
     t_get = tasks_sub.add_parser("get")
     t_get.add_argument("task_id")
 
+    t_create = tasks_sub.add_parser("create")
+    t_create.add_argument("--title", required=True)
+    t_create.add_argument("--column")
+    t_create.add_argument("--description")
+    t_create.add_argument("--assignee", action="append")
+    t_create.add_argument("--deadline")
+    t_create.add_argument("--subtask-of", dest="subtask_of")
+
+    t_update = tasks_sub.add_parser("update")
+    t_update.add_argument("task_id")
+    t_update.add_argument("--title")
+    t_update.add_argument("--column", help='UUID или "-" для удаления из колонки')
+    t_update.add_argument("--description")
+    t_update.add_argument("--deadline")
+    t_update.add_argument("--no-deadline", dest="no_deadline", action="store_true")
+    t_update.add_argument("--completed", choices=["true", "false"])
+    t_update.add_argument("--archived", choices=["true", "false"])
+
+    t_move = tasks_sub.add_parser("move")
+    t_move.add_argument("task_id")
+    t_move.add_argument("--column", required=True)
+
+    t_done = tasks_sub.add_parser("done")
+    t_done.add_argument("task_id")
+
     sub.add_parser("projects", help="(added later)")
     sub.add_parser("boards", help="(added later)")
     sub.add_parser("columns", help="(added later)")
@@ -147,11 +172,22 @@ def _dispatch(args) -> int:
         if args.action == "clear":
             return cmd_context_clear(args)
     if args.cmd == "tasks":
-        from yougile_commands_tasks import cmd_tasks_get, cmd_tasks_list
-        if args.action == "list":
-            return cmd_tasks_list(args)
-        if args.action == "get":
-            return cmd_tasks_get(args)
+        from yougile_commands_tasks import (
+            cmd_tasks_create,
+            cmd_tasks_done,
+            cmd_tasks_get,
+            cmd_tasks_list,
+            cmd_tasks_move,
+            cmd_tasks_update,
+        )
+        return {
+            "list":   cmd_tasks_list,
+            "get":    cmd_tasks_get,
+            "create": cmd_tasks_create,
+            "update": cmd_tasks_update,
+            "move":   cmd_tasks_move,
+            "done":   cmd_tasks_done,
+        }[args.action](args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 

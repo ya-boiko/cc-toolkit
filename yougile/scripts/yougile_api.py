@@ -188,3 +188,9 @@ class YougileClient:
 
     def tasks_get(self, task_id: str) -> dict:
         return self._request("GET", f"/api-v2/tasks/{task_id}")
+
+    def tasks_create(self, body: dict) -> dict:
+        return self._request("POST", "/api-v2/tasks", json=body)
+
+    def tasks_update(self, task_id: str, body: dict) -> dict:
+        return self._request("PUT", f"/api-v2/tasks/{task_id}", json=body)
