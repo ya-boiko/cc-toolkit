@@ -218,3 +218,12 @@ class YougileClient:
         if query:
             params["filterQuery"] = query
         return self._request("GET", "/api-v2/users", params=params)
+
+    # ── chat messages (task comments) ────────────────────────────────
+    def messages_list(self, chat_id: str, *, limit: int = 50, offset: int = 0) -> dict:
+        return self._request("GET", f"/api-v2/chats/{chat_id}/messages",
+                             params={"limit": limit, "offset": offset})
+
+    def messages_create(self, chat_id: str, text: str) -> dict:
+        return self._request("POST", f"/api-v2/chats/{chat_id}/messages",
+                             json={"text": text})

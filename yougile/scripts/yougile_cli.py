@@ -149,7 +149,16 @@ def _build_parser() -> argparse.ArgumentParser:
     u_list = users_sub.add_parser("list")
     u_list.add_argument("--query")
 
-    sub.add_parser("comments", help="(added later)")
+    # comments
+    comm = sub.add_parser("comments", help="task chat messages")
+    comm_sub = comm.add_subparsers(dest="action", required=True)
+    cm_list = comm_sub.add_parser("list")
+    cm_list.add_argument("task_id")
+    cm_list.add_argument("--limit", type=int, default=50)
+    cm_add = comm_sub.add_parser("add")
+    cm_add.add_argument("task_id")
+    cm_add.add_argument("--text", required=True)
+
     sub.add_parser("stickers", help="(added later)")
     return p
 
@@ -239,6 +248,9 @@ def _dispatch(args) -> int:
     if args.cmd == "users":
         from yougile_commands_helpers import cmd_users_list
         return cmd_users_list(args)
+    if args.cmd == "comments":
+        from yougile_commands_comments import cmd_comments_add, cmd_comments_list
+        return {"list": cmd_comments_list, "add": cmd_comments_add}[args.action](args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 
