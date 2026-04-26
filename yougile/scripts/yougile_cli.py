@@ -68,8 +68,23 @@ def _build_parser() -> argparse.ArgumentParser:
     ctx_set.add_argument("--column")
     ctx_sub.add_parser("clear")
 
-    # tasks (parsers extended in subsequent tasks)
-    sub.add_parser("tasks", help="task operations (added in later tasks)")
+    # tasks
+    tasks = sub.add_parser("tasks", help="task operations")
+    tasks_sub = tasks.add_subparsers(dest="action", required=True)
+
+    t_list = tasks_sub.add_parser("list")
+    t_list.add_argument("--column")
+    t_list.add_argument("--assignee")
+    t_list.add_argument("--title")
+    t_list.add_argument("--sticker")
+    t_list.add_argument("--sticker-state", dest="sticker_state")
+    t_list.add_argument("--limit", type=int, default=50)
+    t_list.add_argument("--offset", type=int, default=0)
+    t_list.add_argument("--include-deleted", dest="include_deleted", action="store_true")
+
+    t_get = tasks_sub.add_parser("get")
+    t_get.add_argument("task_id")
+
     sub.add_parser("projects", help="(added later)")
     sub.add_parser("boards", help="(added later)")
     sub.add_parser("columns", help="(added later)")
@@ -131,6 +146,12 @@ def _dispatch(args) -> int:
             return cmd_context_set(args)
         if args.action == "clear":
             return cmd_context_clear(args)
+    if args.cmd == "tasks":
+        from yougile_commands_tasks import cmd_tasks_get, cmd_tasks_list
+        if args.action == "list":
+            return cmd_tasks_list(args)
+        if args.action == "get":
+            return cmd_tasks_get(args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
 

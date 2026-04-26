@@ -164,3 +164,27 @@ class YougileClient:
 
     def columns_get(self, column_id: str) -> dict:
         return self._request("GET", f"/api-v2/columns/{column_id}")
+
+    # ── tasks ────────────────────────────────────────────────────────
+    def tasks_list(self, *, limit: int = 50, offset: int = 0,
+                   column_id: str | None = None, assigned_to: str | None = None,
+                   title: str | None = None, sticker_id: str | None = None,
+                   sticker_state_id: str | None = None,
+                   include_deleted: bool = False) -> dict:
+        params: dict = {"limit": limit, "offset": offset}
+        if include_deleted:
+            params["includeDeleted"] = "true"
+        if column_id:
+            params["columnId"] = column_id
+        if assigned_to:
+            params["assignedTo"] = assigned_to
+        if title:
+            params["title"] = title
+        if sticker_id:
+            params["stickerId"] = sticker_id
+        if sticker_state_id:
+            params["stickerStateId"] = sticker_state_id
+        return self._request("GET", "/api-v2/tasks", params=params)
+
+    def tasks_get(self, task_id: str) -> dict:
+        return self._request("GET", f"/api-v2/tasks/{task_id}")
