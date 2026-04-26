@@ -102,6 +102,18 @@ def _build_parser() -> argparse.ArgumentParser:
     t_update.add_argument("--no-deadline", dest="no_deadline", action="store_true")
     t_update.add_argument("--completed", choices=["true", "false"])
     t_update.add_argument("--archived", choices=["true", "false"])
+    t_update.add_argument("--assignee-add", dest="assignee_add", action="append")
+    t_update.add_argument("--assignee-remove", dest="assignee_remove", action="append")
+    t_update.add_argument("--assignee-set", dest="assignee_set",
+                          help="comma-separated list of user IDs (replaces all)")
+
+    t_addsub = tasks_sub.add_parser("add-subtask")
+    t_addsub.add_argument("parent_id")
+    t_addsub.add_argument("child_id")
+
+    t_rmsub = tasks_sub.add_parser("remove-subtask")
+    t_rmsub.add_argument("parent_id")
+    t_rmsub.add_argument("child_id")
 
     t_move = tasks_sub.add_parser("move")
     t_move.add_argument("task_id")
@@ -173,20 +185,24 @@ def _dispatch(args) -> int:
             return cmd_context_clear(args)
     if args.cmd == "tasks":
         from yougile_commands_tasks import (
+            cmd_tasks_add_subtask,
             cmd_tasks_create,
             cmd_tasks_done,
             cmd_tasks_get,
             cmd_tasks_list,
             cmd_tasks_move,
+            cmd_tasks_remove_subtask,
             cmd_tasks_update,
         )
         return {
-            "list":   cmd_tasks_list,
-            "get":    cmd_tasks_get,
-            "create": cmd_tasks_create,
-            "update": cmd_tasks_update,
-            "move":   cmd_tasks_move,
-            "done":   cmd_tasks_done,
+            "list":            cmd_tasks_list,
+            "get":             cmd_tasks_get,
+            "create":          cmd_tasks_create,
+            "update":          cmd_tasks_update,
+            "move":            cmd_tasks_move,
+            "done":            cmd_tasks_done,
+            "add-subtask":     cmd_tasks_add_subtask,
+            "remove-subtask":  cmd_tasks_remove_subtask,
         }[args.action](args)
     _err(f"команда не реализована: {args.cmd}")
     return EXIT_USAGE
