@@ -10,3 +10,6 @@
 [submodule "mempalace"]
 	path = mempalace
 	url = https://github.com/milla-jovovich/mempalace
+[submodule "team-planner"]
+	path = team-planner
+	url = git@github-personal.com:ya-boiko/team-planner.git
