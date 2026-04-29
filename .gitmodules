@@ -1,3 +1,12 @@
 [submodule "plannotator"]
 	path = plannotator
 	url = https://github.com/backnotprop/plannotator.git
+[submodule "superpowers"]
+	path = superpowers
+	url = git@github.com:obra/superpowers.git
+[submodule "tododo"]
+	path = tododo
+	url = git@github-personal.com:ya-boiko/tododo.git
+[submodule "mempalace"]
+	path = mempalace
+	url = https://github.com/milla-jovovich/mempalace
