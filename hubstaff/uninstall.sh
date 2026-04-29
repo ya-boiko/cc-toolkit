@@ -6,6 +6,7 @@ PLUGIN="hubstaff"
 COMMANDS_DIR="${HOME}/.claude/commands"
 SKILLS_DIR="${HOME}/.claude/skills"
 SCRIPTS_DIR="${HOME}/.claude/scripts/hubstaff"
+CONFIG_FILE="${SCRIPTS_DIR}/config"
 
 echo "Uninstalling ${PLUGIN}..."
 
@@ -14,6 +15,10 @@ echo "Uninstalling ${PLUGIN}..."
 [ -L "${SKILLS_DIR}/hubstaff" ]                 && rm "${SKILLS_DIR}/hubstaff"                 && echo "  removed skill"
 [ -L "${SCRIPTS_DIR}/hubstaff_cli.py" ]         && rm "${SCRIPTS_DIR}/hubstaff_cli.py"         && echo "  removed script"
 [ -L "${SCRIPTS_DIR}/hubstaff_web.py" ]         && rm "${SCRIPTS_DIR}/hubstaff_web.py"         && echo "  removed script (web)"
+
+if [ -f "${CONFIG_FILE}" ]; then
+    rm "${CONFIG_FILE}" && echo "  removed config (${CONFIG_FILE})"
+fi
 
 rmdir --ignore-fail-on-non-empty "${SCRIPTS_DIR}" 2>/dev/null || true
 
