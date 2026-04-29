@@ -4,14 +4,21 @@ Claude Code plugin: subagent + Python CLI for managing YouGile tasks via the RES
 
 ## Install
 
-```bash
-git clone <this-repo> ~/cc_skills
-cd ~/cc_skills/yougile
-python3 -m venv .venv && .venv/bin/pip install requests pytest responses
-bash install.sh
+This plugin lives in the `paperos` marketplace.
+
+```
+/plugin install yougile@paperos
 ```
 
-This creates symlinks in `~/.claude/agents/`, `~/.claude/scripts/yougile/`, and a wrapper at `~/.local/bin/yougile`. Make sure `~/.local/bin` is in your `PATH`.
+Or set in `~/.claude/settings.json`: `"yougile@paperos": true`.
+
+For terminal use of the `yougile` CLI, create a one-time symlink:
+
+```bash
+ln -sf "$(pwd)/bin/yougile" ~/.local/bin/yougile
+```
+
+(run from the `yougile/` plugin folder, or substitute the absolute path). Make sure `~/.local/bin` is in your `PATH`. Tests need `pip install requests pytest responses`.
 
 ## Bootstrap
 
@@ -113,9 +120,11 @@ All tests are HTTP-mocked via `responses` — no real API calls.
 
 ## Uninstall
 
+Set `"yougile@paperos": false` in `~/.claude/settings.json` (or remove the entry). Then:
+
 ```bash
-bash uninstall.sh
-# config at ~/.config/yougile/config.json is left in place; remove manually if desired
+rm ~/.local/bin/yougile                  # remove the CLI symlink
+rm ~/.config/yougile/config.json          # optional, removes saved API key
 ```
 
 ## Architecture

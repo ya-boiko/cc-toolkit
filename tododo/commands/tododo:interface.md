@@ -14,7 +14,7 @@ Launch the tododo web dashboard in the user's browser.
 
 2. Start the web server in the background:
    ```bash
-   python3 ~/.claude/scripts/tododo/tododo_web.py --port <PORT> . &
+   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tododo_web.py --port <PORT> . &
    ```
 
 3. Tell the user:

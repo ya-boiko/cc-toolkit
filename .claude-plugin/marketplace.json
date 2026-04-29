@@ -1,0 +1,33 @@
+{
+  "name": "paperos",
+  "owner": {
+    "name": "Vlad Boiko"
+  },
+  "plugins": [
+    {
+      "name": "git-commands",
+      "source": "./git-commands",
+      "description": "Git workflow commands — commit, generate PR description, create/merge GitLab MR, release, switch directory"
+    },
+    {
+      "name": "tododo",
+      "source": "./tododo",
+      "description": "Manage TODO/FIXME/HACK/XXX comments — list, edit, fix, remove, web dashboard"
+    },
+    {
+      "name": "jira-tasks",
+      "source": "./jira-tasks",
+      "description": "Create, search, and manage Jira issues via MCP integration"
+    },
+    {
+      "name": "team-planner",
+      "source": "./team-planner",
+      "description": "Plan and decompose tasks for Claude Code agent teams"
+    },
+    {
+      "name": "yougile",
+      "source": "./yougile",
+      "description": "Manage YouGile tasks from Claude Code via the REST API v2"
+    }
+  ]
+}

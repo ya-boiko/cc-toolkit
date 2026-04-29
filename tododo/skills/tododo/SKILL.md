@@ -12,19 +12,19 @@ Manage TODO/FIXME/HACK/XXX comments across a codebase: list them by number, edit
 The scanner is installed at a fixed path. Run it directly:
 
 ```bash
-python3 ~/.claude/scripts/tododo/scan_todos.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py .
 ```
 
 Extended context (for `run`, `explore`, `next`):
 
 ```bash
-python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .
 ```
 
 Grouped output (for `list`, `assign-ids` summary):
 
 ```bash
-python3 ~/.claude/scripts/tododo/scan_todos.py --group --context 0 .
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --group --context 0 .
 ```
 
 Grouped output format:
@@ -45,7 +45,7 @@ TODOs written as `# TODO 42: description` use their embedded number as the ID �
 
 Show all TODO comments with their IDs and locations, organized by file.
 
-1. Run the scanner with grouped output: `python3 ~/.claude/scripts/tododo/scan_todos.py --group --context 0 .`
+1. Run the scanner with grouped output: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --group --context 0 .`
 2. Display the grouped list
 3. If no TODOs found, report that the codebase is clean
 
@@ -82,7 +82,7 @@ Delete a TODO comment from source code.
 
 Implement what a TODO describes, then remove the comment once done.
 
-1. Scan with extended context: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .`
+1. Scan with extended context: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .`
 2. Determine which TODOs to implement:
    - IDs specified (e.g. `run 1 3` or `run 42`) → match explicit IDs first, then positional
    - No IDs → display the list and ask the user which ones to execute
@@ -104,7 +104,7 @@ Skip any TODO that is too vague to implement safely; report which were skipped a
 
 Analyze TODOs, ask clarifying questions for vague ones, then rewrite their text with a concrete implementation plan. Use before `run` to make vague TODOs actionable.
 
-1. Scan with `--context 5`: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .`
+1. Scan with `--context 5`: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .`
 2. Select TODOs to explore:
    - IDs provided (e.g. `explore 1 3`) → work only on those
    - No IDs → explore all
@@ -127,7 +127,7 @@ Analyze TODOs, ask clarifying questions for vague ones, then rewrite their text 
 
 Embed stable numeric IDs into all unnamed TODO comments so every entry has a persistent identifier.
 
-1. Run the scanner flat: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 0 .`
+1. Run the scanner flat: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 0 .`
 2. Collect unnamed entries — those whose label in the output is `TODO:`, `FIXME:`, `HACK:`, or `XXX:` (no number between keyword and colon)
 3. Find the maximum existing explicit ID from named entries; start new IDs from `max + 1` (or `1` if no explicit IDs exist)
 4. For each unnamed TODO in file order:
@@ -140,7 +140,7 @@ Embed stable numeric IDs into all unnamed TODO comments so every entry has a per
 
 Surface the single most actionable TODO and offer to implement it.
 
-1. Scan with extended context: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .`
+1. Scan with extended context: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .`
 2. Apply actionability heuristic to pick one TODO:
    - Prefer entries with an explicit ID (more intentional, more stable)
    - Among those, prefer entries with longer, more specific text (not just "fix this")

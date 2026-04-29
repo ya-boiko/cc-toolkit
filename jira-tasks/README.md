@@ -4,10 +4,14 @@ Generates structured Jira task text (title + description) through an interactive
 
 ## Install
 
-```bash
-./install.sh    # symlink command and skill into ~/.claude/
-./update.sh     # git pull (symlinks update automatically)
-./uninstall.sh  # remove symlinks
+```
+/plugin install jira-tasks@paperos
+```
+
+Or set in `~/.claude/settings.json`:
+
+```json
+"enabledPlugins": { "jira-tasks@paperos": true }
 ```
 
 ## Command `/jira`
@@ -87,6 +91,4 @@ Uses the current conversation as context — may skip questions already answered
 
 ## Uninstall
 
-```bash
-./uninstall.sh
-```
+Set `"jira-tasks@paperos": false` in `~/.claude/settings.json` (or remove the entry).

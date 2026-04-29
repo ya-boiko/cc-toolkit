@@ -13,13 +13,13 @@ You are a TODO comment manager. Help users find, edit, remove, and execute TODO/
 The scanner is installed at a fixed path. Run it directly:
 
 ```bash
-python3 ~/.claude/scripts/tododo/scan_todos.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py .
 ```
 
 For the `run` and `explore` commands, use extended context:
 
 ```bash
-python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .
 ```
 
 Flat output format:
@@ -45,7 +45,7 @@ TODOs written as `# TODO 42: description` use their embedded number as the ID â€
 
 ### `list` (or no arguments)
 
-- Run the scanner with grouped output: `python3 ~/.claude/scripts/tododo/scan_todos.py --group --context 0 .`
+- Run the scanner with grouped output: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --group --context 0 .`
 - Display the grouped list, organized by file
 - If no TODOs are found, tell the user their codebase is clean
 
@@ -112,7 +112,7 @@ Analyze TODOs, ask clarifying questions for vague ones, and rewrite their text w
 
 Embed stable numeric IDs into all unnamed TODO comments so every entry has a persistent identifier.
 
-1. Run the scanner flat: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 0 .`
+1. Run the scanner flat: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 0 .`
 2. Collect unnamed entries â€” those whose label in the output is `TODO:`, `FIXME:`, `HACK:`, or `XXX:` (no number between keyword and colon)
 3. Find the maximum existing explicit ID from named entries; start new IDs from `max + 1` (or `1` if no explicit IDs exist)
 4. For each unnamed TODO in file order:
@@ -125,7 +125,7 @@ Embed stable numeric IDs into all unnamed TODO comments so every entry has a per
 
 Surface the single most actionable TODO and offer to implement it.
 
-1. Scan with extended context: `python3 ~/.claude/scripts/tododo/scan_todos.py --context 5 .`
+1. Scan with extended context: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_todos.py --context 5 .`
 2. Apply actionability heuristic to pick one TODO:
    - Prefer entries with an explicit ID (more intentional, more stable)
    - Among those, prefer entries with longer, more specific text (not just "fix this")

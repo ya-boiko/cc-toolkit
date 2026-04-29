@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# yougile CLI launcher.
+# Resolves its own real path (follows symlinks), so it works equally when
+# invoked directly or via a symlink in ~/.local/bin/yougile.
+set -euo pipefail
+
+SCRIPT_REAL="$(readlink -f "$0")"
+PLUGIN_ROOT="$(dirname "$(dirname "$SCRIPT_REAL")")"
+SCRIPTS_DIR="$PLUGIN_ROOT/scripts"
+
+PY="$(command -v python3 || command -v python || true)"
+if [ -z "$PY" ]; then
+    echo "yougile: no python3 found in PATH" >&2
+    exit 127
+fi
+
+PYTHONPATH="$SCRIPTS_DIR${PYTHONPATH:+:$PYTHONPATH}" exec "$PY" "$SCRIPTS_DIR/yougile_cli.py" "$@"
